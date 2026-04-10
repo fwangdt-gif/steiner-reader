@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { books } from '@/lib/data'
+import ContinueReading from './ContinueReading'
 
 export default function LibraryPage() {
   return (
@@ -31,6 +32,8 @@ export default function LibraryPage() {
             {books.length} 部著作 · 共同阅读与批注
           </p>
         </div>
+
+        <ContinueReading />
 
         {/* 书目列表 */}
         <div className="flex flex-col gap-4">

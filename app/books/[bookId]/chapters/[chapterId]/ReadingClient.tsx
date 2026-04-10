@@ -299,6 +299,11 @@ export default function ReadingClient({
     setNotes(loadNotes(chapter.id))
   }, [chapter.id])
 
+  // 保存阅读进度
+  useEffect(() => {
+    localStorage.setItem('steiner_last_read', JSON.stringify({ bookId: book.id, chapterId: chapter.id }))
+  }, [book.id, chapter.id])
+
   const handleSaveNote = (blockId: string, text: string) => {
     setNotes((prev) => {
       const next = { ...prev }
@@ -324,16 +329,16 @@ export default function ReadingClient({
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <Link
             href={`/books/${book.id}`}
-            className="text-sm flex-shrink-0"
-            style={{ color: 'var(--text-secondary)' }}
+            className="text-sm flex-shrink-0 px-3 py-1.5 rounded-lg border"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
           >
-            ← 目录
+            返回目录
           </Link>
           <div className="flex-1 min-w-0 text-center">
-            <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs truncate font-medium" style={{ color: 'var(--text-primary)' }}>
               {book.titleZh}
             </p>
-            <p className="text-sm font-medium truncate leading-tight">
+            <p className="text-xs truncate leading-tight" style={{ color: 'var(--text-muted)' }}>
               {chapter.titleZh}
             </p>
           </div>
@@ -404,7 +409,9 @@ export default function ReadingClient({
               ← {prevChapter.titleZh}
             </Link>
           ) : (
-            <div />
+            <span className="text-sm cursor-not-allowed" style={{ color: 'var(--text-muted)', opacity: 0.4 }}>
+              ← 已是第一章
+            </span>
           )}
           {nextChapter ? (
             <Link
@@ -415,7 +422,9 @@ export default function ReadingClient({
               {nextChapter.titleZh} →
             </Link>
           ) : (
-            <div />
+            <span className="text-sm cursor-not-allowed" style={{ color: 'var(--text-muted)', opacity: 0.4 }}>
+              已是最后一章 →
+            </span>
           )}
         </div>
 
