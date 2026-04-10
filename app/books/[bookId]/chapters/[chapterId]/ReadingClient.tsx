@@ -285,11 +285,13 @@ export default function ReadingClient({
   chapter,
   prevChapter,
   nextChapter,
+  basePath = '/books',
 }: {
   book: Book
   chapter: Chapter
   prevChapter: Chapter | null
   nextChapter: Chapter | null
+  basePath?: string
 }) {
   const [notes, setNotes] = useState<Record<string, Note>>({})
   const [activeBlock, setActiveBlock] = useState<ContentBlock | null>(null)
@@ -387,7 +389,7 @@ export default function ReadingClient({
       >
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <Link
-            href={`/books/${book.id}`}
+            href={`${basePath}/${book.id}`}
             className="text-sm flex-shrink-0 px-3 py-1.5 rounded-lg border"
             style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
           >
@@ -491,7 +493,7 @@ export default function ReadingClient({
         >
           {prevChapter ? (
             <Link
-              href={`/books/${book.id}/chapters/${prevChapter.id}`}
+              href={`${basePath}/${book.id}/chapters/${prevChapter.id}`}
               className="text-sm"
               style={{ color: 'var(--accent)' }}
             >
@@ -504,7 +506,7 @@ export default function ReadingClient({
           )}
           {nextChapter ? (
             <Link
-              href={`/books/${book.id}/chapters/${nextChapter.id}`}
+              href={`${basePath}/${book.id}/chapters/${nextChapter.id}`}
               className="text-sm"
               style={{ color: 'var(--accent)' }}
             >

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { books } from '@/lib/data'
 import ContinueReading from './ContinueReading'
+import LocalBooks from './LocalBooks'
 
 export default function LibraryPage() {
   return (
@@ -20,7 +21,13 @@ export default function LibraryPage() {
               私人圈子
             </span>
           </div>
-          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>书库</span>
+          <Link
+            href="/upload"
+            className="text-sm px-3 py-1.5 rounded-lg border"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+          >
+            + 上传
+          </Link>
         </div>
       </header>
 
@@ -34,6 +41,8 @@ export default function LibraryPage() {
         </div>
 
         <ContinueReading />
+
+        <LocalBooks />
 
         {/* 书目列表 */}
         <div className="flex flex-col gap-4">
