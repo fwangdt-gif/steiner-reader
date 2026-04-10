@@ -4,6 +4,17 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Book } from '@/lib/data'
 
+// 将 text 中匹配 query 的部分用高亮 span 包裹
+function highlight(text: string, query: string) {
+  if (!query.trim()) return text
+  const parts = text.split(new RegExp(`(${query.trim()})`, 'i'))
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.trim().toLowerCase()
+      ? <mark key={i} style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)', borderRadius: '2px' }}>{part}</mark>
+      : part
+  )
+}
+
 export default function BookDetailClient({ book }: { book: Book }) {
   const [lastChapterId, setLastChapterId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
@@ -106,7 +117,7 @@ export default function BookDetailClient({ book }: { book: Book }) {
                       {idx + 1}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{chapter.titleZh}</p>
+                      <p className="text-sm font-medium truncate">{highlight(chapter.titleZh, query)}</p>
                       <p
                         className="text-xs truncate mt-0.5"
                         style={{
@@ -115,7 +126,7 @@ export default function BookDetailClient({ book }: { book: Book }) {
                           fontStyle: 'italic',
                         }}
                       >
-                        {chapter.title}
+                        {highlight(chapter.title, query)}
                       </p>
                     </div>
                   </div>
