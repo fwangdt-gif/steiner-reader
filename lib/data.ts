@@ -17,6 +17,7 @@ export interface Chapter {
   orderIndex: number
   status: 'draft' | 'published'
   blocks: ContentBlock[]
+  markdownFile?: string  // 可选，指向 content/chapters/ 下的 .md 文件
 }
 
 export interface Book {

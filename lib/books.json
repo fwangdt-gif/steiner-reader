@@ -187,5 +187,124 @@
         ]
       }
     ]
+  },
+  {
+    "id": "philosophy-of-freedom",
+    "titleOriginal": "Die Philosophie der Freiheit",
+    "titleZh": "自由的哲学",
+    "author": "Rudolf Steiner",
+    "description": "本书从认识论出发，探讨人类自由的本质，论证真正的自由来自于纯粹思维活动，是史代娜哲学著作中最具系统性的一部。",
+    "coverColor": "#6a8f6a",
+    "publishedYear": 1894,
+    "chapters": [
+      {
+        "id": "pof-ch1",
+        "bookId": "philosophy-of-freedom",
+        "title": "Das bewusste menschliche Handeln",
+        "titleZh": "有意识的人类行为",
+        "orderIndex": 1,
+        "status": "published",
+        "blocks": [
+          {
+            "id": "pof-ch1-b0",
+            "blockIndex": 0,
+            "blockType": "heading",
+            "originalText": "Das bewusste menschliche Handeln",
+            "translationText": "有意识的人类行为",
+            "scanPageRef": 1
+          },
+          {
+            "id": "pof-ch1-b1",
+            "blockIndex": 1,
+            "blockType": "paragraph",
+            "originalText": "Ist der Mensch in seinem Denken und Handeln ein geistig freies Wesen, oder steht er unter dem Zwange einer rein naturgesetzlichen Notwendigkeit?",
+            "translationText": "人在其思维和行动中是一个精神上自由的存在，还是处于纯粹自然法则必然性的强制之下？",
+            "scanPageRef": 1
+          },
+          {
+            "id": "pof-ch1-b2",
+            "blockIndex": 2,
+            "blockType": "paragraph",
+            "originalText": "Es gibt kaum eine zweite Frage, über die so viel nachgedacht worden ist wie über die Frage der menschlichen Freiheit.",
+            "translationText": "几乎没有第二个问题像人类自由这个问题那样被如此深入地思考过。",
+            "scanPageRef": 1
+          },
+          {
+            "id": "pof-ch1-b3",
+            "blockIndex": 3,
+            "blockType": "quote",
+            "originalText": "Der Mensch kann nur dann als frei gelten, wenn er imstande ist, sich selbst die Gesetze seines Handelns zu geben.",
+            "translationText": "只有当人能够为自己的行为立法时，他才能被视为自由的。",
+            "scanPageRef": 3
+          },
+          {
+            "id": "pof-ch1-b4",
+            "blockIndex": 4,
+            "blockType": "paragraph",
+            "originalText": "Beobachten wir zunächst einmal, wie wir eigentlich handeln, wenn wir meinen, frei zu handeln.",
+            "translationText": "让我们首先观察：当我们认为自己在自由行动时，我们究竟是如何行动的。",
+            "scanPageRef": 4
+          }
+        ]
+      },
+      {
+        "id": "pof-ch2",
+        "bookId": "philosophy-of-freedom",
+        "title": "Der Grundtrieb zur Wissenschaft",
+        "titleZh": "科学的根本冲动",
+        "orderIndex": 2,
+        "status": "published",
+        "blocks": [
+          {
+            "id": "pof-ch2-b0",
+            "blockIndex": 0,
+            "blockType": "heading",
+            "originalText": "Der Grundtrieb zur Wissenschaft",
+            "translationText": "科学的根本冲动",
+            "scanPageRef": 10
+          },
+          {
+            "id": "pof-ch2-b1",
+            "blockIndex": 1,
+            "blockType": "paragraph",
+            "originalText": "In den mannigfaltigsten Formen tritt uns die Unzufriedenheit des Menschen mit dem bloß Gegebenen entgegen.",
+            "translationText": "人类对于单纯给定之物的不满足感，以各种各样的形式呈现在我们面前。",
+            "scanPageRef": 10
+          },
+          {
+            "id": "pof-ch2-b2",
+            "blockIndex": 2,
+            "blockType": "paragraph",
+            "originalText": "Wir wollen die Welt nicht nur wahrnehmen; wir wollen sie auch begreifen. Begreifen heißt: die Dinge durch Begriffe vermittelt erfassen.",
+            "translationText": "我们不仅想感知世界，还想理解它。理解意味着：通过概念的中介来把握事物。",
+            "scanPageRef": 11
+          },
+          {
+            "id": "pof-ch2-b3",
+            "blockIndex": 3,
+            "blockType": "subheading",
+            "originalText": "Das Denken als Werkzeug",
+            "translationText": "思维作为工具",
+            "scanPageRef": 12
+          },
+          {
+            "id": "pof-ch2-b4",
+            "blockIndex": 4,
+            "blockType": "paragraph",
+            "originalText": "Das Denken ist dasjenige, was uns über die bloße Wahrnehmung hinausführt. Es ist das Organ, durch das wir in das Innere der Dinge eindringen.",
+            "translationText": "思维是将我们引向单纯感知之外的东西。它是我们藉以深入事物内部的器官。",
+            "scanPageRef": 12
+          },
+          {
+            "id": "pof-ch2-b5",
+            "blockIndex": 5,
+            "blockType": "quote",
+            "originalText": "Denken ist die stille Unterhaltung des Menschen mit sich selbst über die Welt.",
+            "translationText": "思维是人与自身就世界所进行的无声对话。",
+            "scanPageRef": 13
+          }
+        ]
+      }
+    ]
   }
 ]
