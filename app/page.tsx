@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { books } from '@/lib/data'
 import ContinueReading from './ContinueReading'
 import LocalBooks from './LocalBooks'
+import UploadFileModal from './UploadFileModal'
 
 export default function LibraryPage() {
   return (
@@ -21,12 +22,13 @@ export default function LibraryPage() {
               私人圈子
             </span>
           </div>
+          <UploadFileModal />
           <Link
             href="/upload"
             className="text-sm px-3 py-1.5 rounded-lg border"
             style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
           >
-            + 上传
+            + 手动录入
           </Link>
         </div>
       </header>
