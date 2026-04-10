@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { getLocalBooks } from '@/lib/local-books'
+import { getLocalBooks, saveLocalBook } from '@/lib/local-books'
 import type { Book } from '@/lib/data'
 
 function exportBook(book: Book) {
@@ -18,15 +18,48 @@ function exportBook(book: Book) {
 
 export default function LocalBooks() {
   const [books, setBooks] = useState<Book[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string)
+        // 支持单本书（对象）或多本书（数组）
+        const items: Book[] = Array.isArray(data) ? data : [data]
+        for (const item of items) {
+          if (!item.id || !item.titleZh || !Array.isArray(item.chapters)) {
+            alert('JSON 格式有误：缺少 id、titleZh 或 chapters 字段')
+            return
+          }
+          saveLocalBook(item)
+        }
+        setBooks(getLocalBooks())
+      } catch {
+        alert('文件解析失败，请确认是有效的 JSON 文件')
+      } finally {
+        // 重置 input，允许重复导入同一文件
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      }
+    }
+    reader.readAsText(file)
+  }
 
   useEffect(() => {
     setBooks(getLocalBooks())
   }, [])
 
-  if (books.length === 0) return null
-
   return (
     <div className="mb-8">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleImport}
+      />
       <div className="flex items-center gap-2 mb-4">
         <h2 className="text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
           本地书籍
@@ -37,9 +70,21 @@ export default function LocalBooks() {
         >
           仅在本设备可见
         </span>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="ml-auto text-xs px-3 py-1 rounded-lg border"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+        >
+          导入 JSON
+        </button>
       </div>
 
       <div className="flex flex-col gap-4">
+        {books.length === 0 && (
+          <p className="text-sm py-2" style={{ color: 'var(--text-muted)' }}>
+            暂无本地书籍，可上传或导入 JSON
+          </p>
+        )}
         {books.map((book) => (
           <div
             key={book.id}
