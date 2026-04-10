@@ -6,6 +6,7 @@ import type { Book } from '@/lib/data'
 
 export default function BookDetailClient({ book }: { book: Book }) {
   const [lastChapterId, setLastChapterId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
 
   // 读取 localStorage 中的阅读记录
   useEffect(() => {
@@ -20,6 +21,11 @@ export default function BookDetailClient({ book }: { book: Book }) {
   }, [book.id])
 
   const lastChapter = book.chapters.find((c) => c.id === lastChapterId) ?? null
+  const filtered = query.trim()
+    ? book.chapters.filter((c) =>
+        c.titleZh.includes(query.trim()) || c.title.includes(query.trim())
+      )
+    : book.chapters
 
   return (
     <div>
@@ -53,8 +59,28 @@ export default function BookDetailClient({ book }: { book: Book }) {
         章节目录
       </h2>
 
+      {/* 搜索框 */}
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="搜索章节…"
+        className="w-full mb-4 px-4 py-2 rounded-xl border text-sm outline-none"
+        style={{
+          backgroundColor: 'var(--surface)',
+          borderColor: 'var(--border)',
+          color: 'var(--text-primary)',
+        }}
+      />
+
       <div className="flex flex-col gap-2">
-        {book.chapters.map((chapter, idx) => {
+        {filtered.length === 0 && (
+          <p className="text-sm text-center py-8" style={{ color: 'var(--text-muted)' }}>
+            没有找到匹配的章节
+          </p>
+        )}
+        {filtered.map((chapter) => {
+          const idx = book.chapters.indexOf(chapter)
           const isPublished = chapter.status === 'published'
           const isCurrent = chapter.id === lastChapterId
 
