@@ -294,6 +294,7 @@ export default function ReadingClient({
   const [notes, setNotes] = useState<Record<string, Note>>({})
   const [activeBlock, setActiveBlock] = useState<ContentBlock | null>(null)
   const [dark, setDark] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   const FONT_SIZES = [15, 17, 20] // 小 / 中 / 大
   const [sizeIdx, setSizeIdx] = useState(1) // 默认中档
@@ -338,6 +339,17 @@ export default function ReadingClient({
     setNotes(loadNotes(chapter.id))
   }, [chapter.id])
 
+  // 滚动进度条
+  useEffect(() => {
+    const onScroll = () => {
+      const scrolled = window.scrollY
+      const total = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(total > 0 ? Math.min(scrolled / total, 1) : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // 保存阅读进度
   useEffect(() => {
     localStorage.setItem('steiner_last_read', JSON.stringify({ bookId: book.id, chapterId: chapter.id }))
@@ -360,6 +372,14 @@ export default function ReadingClient({
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
+      {/* 滚动进度条 */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-0.5" style={{ backgroundColor: 'var(--border)' }}>
+        <div
+          className="h-full transition-none"
+          style={{ width: `${progress * 100}%`, backgroundColor: 'var(--accent)' }}
+        />
+      </div>
+
       {/* 顶部导航 */}
       <header
         className="sticky top-0 z-30 border-b"
