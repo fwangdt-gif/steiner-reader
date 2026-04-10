@@ -1,0 +1,275 @@
+// Mock data — 史代娜阅读平台样本内容
+// 后期替换为 Supabase 数据库查询
+
+export interface ContentBlock {
+  id: string
+  blockIndex: number
+  blockType: 'heading' | 'subheading' | 'paragraph' | 'quote'
+  originalText: string   // 德文原文
+  translationText: string // 中文译文
+  scanPageRef?: number   // 对应扫描页码
+}
+
+export interface Chapter {
+  id: string
+  bookId: string
+  title: string
+  titleZh: string
+  orderIndex: number
+  status: 'draft' | 'published'
+  blocks: ContentBlock[]
+}
+
+export interface Book {
+  id: string
+  titleOriginal: string
+  titleZh: string
+  author: string
+  description: string
+  coverColor: string  // 用颜色代替封面图
+  publishedYear: number
+  chapters: Chapter[]
+}
+
+// ── 样本数据 ──────────────────────────────────────────────────────
+
+export const books: Book[] = [
+  {
+    id: 'theosophy',
+    titleOriginal: 'Theosophie',
+    titleZh: '神智学',
+    author: 'Rudolf Steiner',
+    description:
+      '本书从精神科学的角度，阐述了人类本性的三重结构——身体、灵魂与精神，以及死亡之后灵魂的历程与转世再生的规律。',
+    coverColor: '#4a6fa5',
+    publishedYear: 1904,
+    chapters: [
+      {
+        id: 'theosophy-ch1',
+        bookId: 'theosophy',
+        title: 'Das Wesen des Menschen',
+        titleZh: '人的本性',
+        orderIndex: 1,
+        status: 'published',
+        blocks: [
+          {
+            id: 'th-ch1-b0',
+            blockIndex: 0,
+            blockType: 'heading',
+            originalText: 'Das Wesen des Menschen',
+            translationText: '人的本性',
+            scanPageRef: 1,
+          },
+          {
+            id: 'th-ch1-b1',
+            blockIndex: 1,
+            blockType: 'paragraph',
+            originalText:
+              'Dreifach ist der Mensch. Er steht mit seinem Leib in der sinnlichen Welt; durch seine Seele baut er sich seine eigene Welt; und durch seinen Geist offenbart sich ihm eine Welt, die über die beiden anderen erhaben ist.',
+            translationText:
+              '人具有三重性。他以其身体存在于感官世界之中；通过灵魂，他为自己建造属于自己的世界；而通过精神，一个超越前两者的世界向他显现。',
+            scanPageRef: 1,
+          },
+          {
+            id: 'th-ch1-b2',
+            blockIndex: 2,
+            blockType: 'paragraph',
+            originalText:
+              'Jeder Mensch kann von sich selbst sagen: Ich bin in mir eine Welt. Aber er kann von sich auch sagen: Ich stehe in einer Welt, ich bin ein Teil von ihr. Diese beiden Tatsachen widersprechen sich nicht; sie ergänzen sich.',
+            translationText:
+              '每个人都可以说：我自身就是一个世界。但他也可以说：我置身于一个世界之中，我是其一部分。这两个事实并不矛盾，它们相互补充。',
+            scanPageRef: 1,
+          },
+          {
+            id: 'th-ch1-b3',
+            blockIndex: 3,
+            blockType: 'paragraph',
+            originalText:
+              'Was durch die Sinne wahrgenommen werden kann, ist die physische Welt. Was durch die Seele empfunden und gedacht wird, ist die Seelenwelt. Was durch den Geist erkannt wird, ist die Geistwelt. Diese drei Welten stehen in einem bestimmten Verhältnis zueinander.',
+            translationText:
+              '能够被感官所感知的，是物质世界。通过灵魂所感受和思考的，是灵魂世界。通过精神所认知的，是精神世界。这三个世界彼此之间处于特定的关系之中。',
+            scanPageRef: 2,
+          },
+          {
+            id: 'th-ch1-b4',
+            blockIndex: 4,
+            blockType: 'quote',
+            originalText:
+              'Der Mensch ist ein zusammengesetztes Wesen. Er gliedert sich nach dem Leib in die Natur ein; er gliedert sich nach dem Geist in die Welt des Geistes ein; er verbindet in der Seele beide Welten.',
+            translationText:
+              '人是一个复合的存在。就身体而言，他归属于自然；就精神而言，他归属于精神世界；在灵魂中，他将两个世界联结为一体。',
+            scanPageRef: 2,
+          },
+          {
+            id: 'th-ch1-b5',
+            blockIndex: 5,
+            blockType: 'paragraph',
+            originalText:
+              'Man unterscheidet am Menschen zunächst das, was sich der äußeren Sinneswahrnehmung darbietet. Dies ist der physische Leib. Dieser hat die gleichen Stoffe und Kräfte wie die übrige «leblose» Natur; dazu aber noch Leben.',
+            translationText:
+              '我们首先在人身上区分出那向外在感官呈现的部分，这就是物质身体。它由与其他"无生命"自然界相同的物质和力量构成，但除此之外还具有生命。',
+            scanPageRef: 3,
+          },
+          {
+            id: 'th-ch1-b6',
+            blockIndex: 6,
+            blockType: 'paragraph',
+            originalText:
+              'Das Zweite am Menschen ist das, was er mit den übrigen Lebewesen gemeinsam hat: das Leben. Was lebt, hat in sich eine Kraft, die nicht in der äußeren, sinnlichen Welt beobachtet werden kann. Diese Kraft nennen wir die Lebenskraft oder den Äther-Leib.',
+            translationText:
+              '人身上的第二个要素是他与其他生命共同拥有的：生命本身。有生命的存在在自身内部拥有一种无法在外在感官世界中被观察到的力量。我们称这种力量为生命力，或以太体。',
+            scanPageRef: 3,
+          },
+          {
+            id: 'th-ch1-b7',
+            blockIndex: 7,
+            blockType: 'paragraph',
+            originalText:
+              'Das Dritte am Menschen ist das Seelische. Die Seele nimmt Eindrücke von außen auf; sie empfindet Lust und Leid, Freude und Schmerz; sie hat Wünsche, Triebe und Leidenschaften. Dies sind seelische Erlebnisse.',
+            translationText:
+              '人身上的第三个要素是灵魂性的部分。灵魂接收来自外部的印象；它感受喜悦与悲伤、欢乐与痛苦；它有愿望、冲动与激情。这些都是灵魂的体验。',
+            scanPageRef: 4,
+          },
+        ],
+      },
+      {
+        id: 'theosophy-ch2',
+        bookId: 'theosophy',
+        title: 'Die Seelenwelt',
+        titleZh: '灵魂世界',
+        orderIndex: 2,
+        status: 'published',
+        blocks: [
+          {
+            id: 'th-ch2-b0',
+            blockIndex: 0,
+            blockType: 'heading',
+            originalText: 'Die Seelenwelt',
+            translationText: '灵魂世界',
+            scanPageRef: 55,
+          },
+          {
+            id: 'th-ch2-b1',
+            blockIndex: 1,
+            blockType: 'paragraph',
+            originalText:
+              'Die Seelenwelt ist von der physischen Welt verschieden. Wer die Seelenwelt wahrnehmen will, der muss andere Organe haben als die physischen Sinne. Erst durch solche Organe wird ihm die Seelenwelt zugänglich.',
+            translationText:
+              '灵魂世界与物质世界截然不同。想要感知灵魂世界的人，必须拥有不同于物质感官的器官。只有通过这样的器官，灵魂世界才能向他敞开。',
+            scanPageRef: 55,
+          },
+          {
+            id: 'th-ch2-b2',
+            blockIndex: 2,
+            blockType: 'paragraph',
+            originalText:
+              'In der Seelenwelt herrschen andere Gesetze als in der physischen Welt. Das Wesen der Seelenwelt ist das Erleben. Was in der physischen Welt als Ursache und Wirkung erscheint, tritt in der Seelenwelt als inneres Erlebnis auf.',
+            translationText:
+              '灵魂世界中运行着与物质世界不同的规律。灵魂世界的本质是体验。在物质世界中表现为因与果的东西，在灵魂世界中则以内在体验的形式呈现。',
+            scanPageRef: 56,
+          },
+          {
+            id: 'th-ch2-b3',
+            blockIndex: 3,
+            blockType: 'paragraph',
+            originalText:
+              'Wie die physischen Dinge einen physischen Leib haben, so haben die seelischen Dinge einen Seelen-Leib. Dieser ist nicht weniger wirklich als der physische Leib, aber er ist anderer Art.',
+            translationText:
+              '正如物质事物拥有物质身体，灵魂性的事物也拥有灵魂体。灵魂体与物质身体同样真实，只是性质不同。',
+            scanPageRef: 56,
+          },
+        ],
+      },
+      {
+        id: 'theosophy-ch3',
+        bookId: 'theosophy',
+        title: 'Der Geist im Menschenreiche',
+        titleZh: '人类领域中的精神',
+        orderIndex: 3,
+        status: 'draft',
+        blocks: [],
+      },
+    ],
+  },
+  {
+    id: 'knowledge-of-higher-worlds',
+    titleOriginal: 'Wie erlangt man Erkenntnisse der höheren Welten?',
+    titleZh: '如何获得高级世界的认知？',
+    author: 'Rudolf Steiner',
+    description:
+      '本书是史代娜精神修炼道路的系统阐述，描述了人如何通过内在修炼，逐步培育出感知灵魂与精神世界的能力。',
+    coverColor: '#7a6fa5',
+    publishedYear: 1904,
+    chapters: [
+      {
+        id: 'how-ch1',
+        bookId: 'knowledge-of-higher-worlds',
+        title: 'Wie erlangt man Erkenntnisse der höheren Welten?',
+        titleZh: '如何获得高级世界的认知？',
+        orderIndex: 1,
+        status: 'published',
+        blocks: [
+          {
+            id: 'how-ch1-b0',
+            blockIndex: 0,
+            blockType: 'heading',
+            originalText: 'Wie erlangt man Erkenntnisse der höheren Welten?',
+            translationText: '如何获得高级世界的认知？',
+            scanPageRef: 1,
+          },
+          {
+            id: 'how-ch1-b1',
+            blockIndex: 1,
+            blockType: 'paragraph',
+            originalText:
+              'In jedem Menschen schlafen Fähigkeiten, durch die er Erkenntnisse über höhere Welten erlangen kann. Mystiker, Gnostiker, Theosophen redeten von einer Geisterwelt, die für sie ebenso offenbar war wie die Welt der Sinne.',
+            translationText:
+              '每个人身上都沉睡着一些能力，通过这些能力，他可以获得关于更高世界的认知。神秘主义者、灵知主义者、神智学家们谈论一个精神世界，对他们而言，这个世界与感官世界一样真实可见。',
+            scanPageRef: 1,
+          },
+          {
+            id: 'how-ch1-b2',
+            blockIndex: 2,
+            blockType: 'paragraph',
+            originalText:
+              'Man kann sagen: wer höhere Erkenntnisse sucht, der muss zunächst Ehrfurcht und Hochachtung vor dem Wahren und dem Wirklichen in sich schaffen. Diese Hochachtung ist der Keim, aus dem die höheren Erkenntnisfähigkeiten hervorwachsen.',
+            translationText:
+              '可以这样说：寻求更高认知的人，首先必须在自身内培育对真实与现实的敬畏与崇敬。这种崇敬是更高认知能力由以生长的种子。',
+            scanPageRef: 2,
+          },
+          {
+            id: 'how-ch1-b3',
+            blockIndex: 3,
+            blockType: 'paragraph',
+            originalText:
+              'Die Wege zu dieser höheren Erkenntnis gehen durch das innere Seelenleben des Menschen. Man muss lernen, sich in sich selbst zu vertiefen und dabei all das zurückzudrängen, was von außen kommt.',
+            translationText:
+              '通往这种更高认知的道路，穿越人的内在灵魂生活。人必须学会深入到自身内部，同时将一切来自外部的东西推向后方。',
+            scanPageRef: 2,
+          },
+        ],
+      },
+    ],
+  },
+]
+
+// ── 查询函数 ──────────────────────────────────────────────────────
+
+export function getBook(bookId: string): Book | undefined {
+  return books.find((b) => b.id === bookId)
+}
+
+export function getChapter(bookId: string, chapterId: string): Chapter | undefined {
+  const book = getBook(bookId)
+  return book?.chapters.find((c) => c.id === chapterId)
+}
+
+export function getAdjacentChapters(bookId: string, chapterId: string) {
+  const book = getBook(bookId)
+  if (!book) return { prev: null, next: null }
+  const idx = book.chapters.findIndex((c) => c.id === chapterId)
+  return {
+    prev: idx > 0 ? book.chapters[idx - 1] : null,
+    next: idx < book.chapters.length - 1 ? book.chapters[idx + 1] : null,
+  }
+}
