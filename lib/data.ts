@@ -30,22 +30,13 @@ export interface Book {
   chapters: Chapter[]
 }
 
-// ── 从 content/ 导入书目 JSON ─────────────────────────────────────
+// ── 书目数据 ──────────────────────────────────────────────────────
 //
-// 新增一本书：
-//   1. 在 content/ 目录下新建 JSON 文件（参考现有文件格式）
-//   2. 在下方 import 一行
-//   3. 加入 books 数组
+// 新增一本书：直接在 lib/books.json 数组末尾追加一个书对象即可
 //
-import theosophy from '@/content/theosophy.json'
-import knowledgeOfHigherWorlds from '@/content/knowledge-of-higher-worlds.json'
-// import myNewBook from '@/content/my-new-book.json'
+import booksData from '@/lib/books.json'
 
-export const books: Book[] = [
-  theosophy as Book,
-  knowledgeOfHigherWorlds as Book,
-  // myNewBook as Book,
-]
+export const books: Book[] = booksData as Book[]
 
 // ── 查询函数（供页面使用，不需要修改） ────────────────────────────
 
