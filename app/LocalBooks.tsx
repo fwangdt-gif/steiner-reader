@@ -19,6 +19,29 @@ function exportBook(book: Book) {
 export default function LocalBooks() {
   const [books, setBooks] = useState<Book[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [publishing, setPublishing] = useState<string | null>(null) // 正在发布的 bookId
+
+  const handlePublish = async (book: Book) => {
+    if (!confirm(`确认将《${book.titleZh}》发布到公共书库？\n发布后所有人可见，且会触发 Vercel 重新部署。`)) return
+    setPublishing(book.id)
+    try {
+      const res = await fetch('/api/publish-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(book),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(`发布失败：${data.error}`)
+      } else {
+        alert(`《${book.titleZh}》已发布到公共书库，Vercel 将自动重新部署。`)
+      }
+    } catch {
+      alert('网络错误，请稍后重试')
+    } finally {
+      setPublishing(null)
+    }
+  }
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -116,6 +139,14 @@ export default function LocalBooks() {
                     style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
                   >
                     导出 JSON
+                  </button>
+                  <button
+                    onClick={() => handlePublish(book)}
+                    disabled={publishing === book.id}
+                    className="text-sm px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                    style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
+                  >
+                    {publishing === book.id ? '发布中…' : '发布到书库'}
                   </button>
                   <Link
                     href={`/local/${book.id}`}
