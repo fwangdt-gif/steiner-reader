@@ -295,6 +295,9 @@ export default function ReadingClient({
   const [activeBlock, setActiveBlock] = useState<ContentBlock | null>(null)
   const [dark, setDark] = useState(false)
 
+  const FONT_SIZES = [15, 17, 20] // 小 / 中 / 大
+  const [sizeIdx, setSizeIdx] = useState(1) // 默认中档
+
   // 初始化主题
   useEffect(() => {
     const saved = localStorage.getItem('steiner_theme')
@@ -303,6 +306,25 @@ export default function ReadingClient({
       setDark(true)
     }
   }, [])
+
+  // 初始化字号
+  useEffect(() => {
+    const saved = localStorage.getItem('steiner_font_size')
+    if (saved !== null) {
+      const idx = Number(saved)
+      setSizeIdx(idx)
+      document.documentElement.style.setProperty('--reading-font-size', FONT_SIZES[idx] + 'px')
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const changeSize = (delta: number) => {
+    setSizeIdx((prev) => {
+      const next = Math.min(Math.max(prev + delta, 0), FONT_SIZES.length - 1)
+      document.documentElement.style.setProperty('--reading-font-size', FONT_SIZES[next] + 'px')
+      localStorage.setItem('steiner_font_size', String(next))
+      return next
+    })
+  }
 
   const toggleTheme = () => {
     const next = !dark
@@ -363,6 +385,27 @@ export default function ReadingClient({
             {noteCount > 0 && (
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>📝 {noteCount}</span>
             )}
+            {/* 字号调节 */}
+            <div className="flex items-center rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+              <button
+                onClick={() => changeSize(-1)}
+                disabled={sizeIdx === 0}
+                className="px-2 py-1 text-xs disabled:opacity-30"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                A-
+              </button>
+              <span className="w-px h-4 self-center" style={{ backgroundColor: 'var(--border)' }} />
+              <button
+                onClick={() => changeSize(1)}
+                disabled={sizeIdx === FONT_SIZES.length - 1}
+                className="px-2 py-1 text-xs disabled:opacity-30"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                A+
+              </button>
+            </div>
+            {/* 亮暗切换 */}
             <button
               onClick={toggleTheme}
               className="text-xs px-2 py-1 rounded-lg border"
