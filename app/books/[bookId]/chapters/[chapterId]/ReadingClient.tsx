@@ -293,6 +293,23 @@ export default function ReadingClient({
 }) {
   const [notes, setNotes] = useState<Record<string, Note>>({})
   const [activeBlock, setActiveBlock] = useState<ContentBlock | null>(null)
+  const [dark, setDark] = useState(false)
+
+  // 初始化主题
+  useEffect(() => {
+    const saved = localStorage.getItem('steiner_theme')
+    if (saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+      setDark(true)
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.setAttribute('data-theme', next ? 'dark' : '')
+    localStorage.setItem('steiner_theme', next ? 'dark' : 'light')
+  }
 
   // 从 localStorage 加载笔记
   useEffect(() => {
@@ -342,8 +359,17 @@ export default function ReadingClient({
               {chapter.titleZh}
             </p>
           </div>
-          <div className="flex-shrink-0 text-xs" style={{ color: 'var(--text-muted)' }}>
-            {noteCount > 0 ? `📝 ${noteCount}` : ''}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {noteCount > 0 && (
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>📝 {noteCount}</span>
+            )}
+            <button
+              onClick={toggleTheme}
+              className="text-xs px-2 py-1 rounded-lg border"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+            >
+              {dark ? '☀️' : '🌙'}
+            </button>
           </div>
         </div>
       </header>

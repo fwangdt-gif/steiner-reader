@@ -13,6 +13,19 @@
   --warm-200: #ede8e0;
 }
 
+[data-theme="dark"] {
+  --surface: #1c1917;
+  --surface-raised: #28211e;
+  --border: #3d3530;
+  --text-primary: #e7e5e4;
+  --text-secondary: #a8a29e;
+  --text-muted: #78716c;
+  --accent: #7da4d0;
+  --accent-light: #1e2a38;
+  --warm-100: #231e1b;
+  --warm-200: #2e2724;
+}
+
 body {
   background-color: var(--surface);
   color: var(--text-primary);
