@@ -360,7 +360,7 @@ export default function ReadingClient({
               fontStyle: 'italic',
             }}
           >
-            第 {chapter.orderIndex} 章
+            第 {chapter.orderIndex} 章 / 共 {book.chapters.length} 章
           </p>
           <p
             className="text-sm mb-1"
