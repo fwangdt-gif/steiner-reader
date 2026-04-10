@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getBook } from '@/lib/data'
+import BookDetailClient from './BookDetailClient'
 
 interface Props {
   params: Promise<{ bookId: string }>
@@ -55,79 +56,7 @@ export default async function BookDetailPage({ params }: Props) {
           </p>
         </div>
 
-        {/* 章节目录 */}
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
-            章节目录
-          </h2>
-
-          <div className="flex flex-col gap-2">
-            {book.chapters.map((chapter, idx) => {
-              const isPublished = chapter.status === 'published'
-              return (
-                <div key={chapter.id}>
-                  {isPublished ? (
-                    <Link
-                      href={`/books/${book.id}/chapters/${chapter.id}`}
-                      className="flex items-center justify-between p-4 rounded-xl border group transition-colors"
-                      style={{
-                        backgroundColor: 'var(--surface-raised)',
-                        borderColor: 'var(--border)',
-                      }}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span
-                          className="text-xs w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-medium"
-                          style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}
-                        >
-                          {idx + 1}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{chapter.titleZh}</p>
-                          <p
-                            className="text-xs truncate mt-0.5"
-                            style={{
-                              color: 'var(--text-muted)',
-                              fontFamily: 'Georgia, serif',
-                              fontStyle: 'italic',
-                            }}
-                          >
-                            {chapter.title}
-                          </p>
-                        </div>
-                      </div>
-                      <span style={{ color: 'var(--accent)' }} className="text-sm ml-3 flex-shrink-0">
-                        阅读 →
-                      </span>
-                    </Link>
-                  ) : (
-                    <div
-                      className="flex items-center justify-between p-4 rounded-xl border opacity-50"
-                      style={{ backgroundColor: 'var(--warm-100)', borderColor: 'var(--border)' }}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span
-                          className="text-xs w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-medium"
-                          style={{ backgroundColor: 'var(--warm-200)', color: 'var(--text-muted)' }}
-                        >
-                          {idx + 1}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {chapter.titleZh}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
-                        草稿
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <BookDetailClient book={book} />
       </main>
     </div>
   )
