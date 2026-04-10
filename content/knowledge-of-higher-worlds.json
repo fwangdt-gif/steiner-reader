@@ -1,0 +1,53 @@
+{
+  "id": "knowledge-of-higher-worlds",
+  "titleOriginal": "Wie erlangt man Erkenntnisse der höheren Welten?",
+  "titleZh": "如何获得高级世界的认知？",
+  "author": "Rudolf Steiner",
+  "description": "本书是史代娜精神修炼道路的系统阐述，描述了人如何通过内在修炼，逐步培育出感知灵魂与精神世界的能力。",
+  "coverColor": "#7a6fa5",
+  "publishedYear": 1904,
+  "chapters": [
+    {
+      "id": "how-ch1",
+      "bookId": "knowledge-of-higher-worlds",
+      "title": "Wie erlangt man Erkenntnisse der höheren Welten?",
+      "titleZh": "如何获得高级世界的认知？",
+      "orderIndex": 1,
+      "status": "published",
+      "blocks": [
+        {
+          "id": "how-ch1-b0",
+          "blockIndex": 0,
+          "blockType": "heading",
+          "originalText": "Wie erlangt man Erkenntnisse der höheren Welten?",
+          "translationText": "如何获得高级世界的认知？",
+          "scanPageRef": 1
+        },
+        {
+          "id": "how-ch1-b1",
+          "blockIndex": 1,
+          "blockType": "paragraph",
+          "originalText": "In jedem Menschen schlafen Fähigkeiten, durch die er Erkenntnisse über höhere Welten erlangen kann. Mystiker, Gnostiker, Theosophen redeten von einer Geisterwelt, die für sie ebenso offenbar war wie die Welt der Sinne.",
+          "translationText": "每个人身上都沉睡着一些能力，通过这些能力，他可以获得关于更高世界的认知。神秘主义者、灵知主义者、神智学家们谈论一个精神世界，对他们而言，这个世界与感官世界一样真实可见。",
+          "scanPageRef": 1
+        },
+        {
+          "id": "how-ch1-b2",
+          "blockIndex": 2,
+          "blockType": "paragraph",
+          "originalText": "Man kann sagen: wer höhere Erkenntnisse sucht, der muss zunächst Ehrfurcht und Hochachtung vor dem Wahren und dem Wirklichen in sich schaffen. Diese Hochachtung ist der Keim, aus dem die höheren Erkenntnisfähigkeiten hervorwachsen.",
+          "translationText": "可以这样说：寻求更高认知的人，首先必须在自身内培育对真实与现实的敬畏与崇敬。这种崇敬是更高认知能力由以生长的种子。",
+          "scanPageRef": 2
+        },
+        {
+          "id": "how-ch1-b3",
+          "blockIndex": 3,
+          "blockType": "paragraph",
+          "originalText": "Die Wege zu dieser höheren Erkenntnis gehen durch das innere Seelenleben des Menschen. Man muss lernen, sich in sich selbst zu vertiefen und dabei all das zurückzudrängen, was von außen kommt.",
+          "translationText": "通往这种更高认知的道路，穿越人的内在灵魂生活。人必须学会深入到自身内部，同时将一切来自外部的东西推向后方。",
+          "scanPageRef": 2
+        }
+      ]
+    }
+  ]
+}
