@@ -391,6 +391,21 @@ export default function ReadingClient({
     localStorage.setItem('steiner_last_read', JSON.stringify({ bookId: book.id, chapterId: chapter.id }))
   }, [book.id, chapter.id])
 
+  // 键盘翻章
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.key === 'ArrowLeft' && prevChapter) {
+        window.location.href = `${basePath}/${book.id}/chapters/${prevChapter.id}`
+      }
+      if (e.key === 'ArrowRight' && nextChapter) {
+        window.location.href = `${basePath}/${book.id}/chapters/${nextChapter.id}`
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [prevChapter, nextChapter, basePath, book.id])
+
   const handleSaveNote = (blockId: string, text: string) => {
     setNotes((prev) => {
       const next = { ...prev }
@@ -471,29 +486,24 @@ export default function ReadingClient({
       </header>
 
       {/* 正文 */}
-      <main className="max-w-2xl mx-auto px-5 py-8">
+      <main className="max-w-xl mx-auto px-5 py-10">
         {/* 章节标题区 */}
-        <div className="mb-8">
-          <p
-            className="text-xs mb-1"
-            style={{
-              color: 'var(--text-muted)',
-              fontFamily: 'Georgia, serif',
-              fontStyle: 'italic',
-            }}
-          >
-            第 {chapter.orderIndex} 章 / 共 {book.chapters.length} 章
+        <div className="mb-10">
+          <p className="text-xs mb-3 uppercase tracking-widest"
+            style={{ color: 'var(--text-muted)', fontFamily: 'Georgia, serif' }}>
+            第 {chapter.orderIndex} 章 · 共 {book.chapters.length} 章
           </p>
-          <p
-            className="text-sm mb-1"
-            style={{
-              color: 'var(--text-muted)',
-              fontFamily: 'Georgia, serif',
-              fontStyle: 'italic',
-            }}
-          >
-            {chapter.title}
-          </p>
+          {chapter.title && chapter.title !== chapter.titleZh && (
+            <p className="text-sm mb-2 italic"
+              style={{ color: 'var(--text-muted)', fontFamily: 'Georgia, serif' }}>
+              {chapter.title}
+            </p>
+          )}
+          <h1 className="text-2xl font-semibold leading-snug"
+            style={{ fontFamily: 'Georgia, "Noto Serif SC", serif', color: 'var(--text-primary)' }}>
+            {chapter.titleZh}
+          </h1>
+          <div className="mt-4 w-8 h-0.5 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
         </div>
 
         {/* 段落列表 */}
@@ -524,39 +534,40 @@ export default function ReadingClient({
         )}
 
         {/* 章节导航 */}
-        <div
-          className="mt-12 pt-6 border-t flex justify-between items-center"
-          style={{ borderColor: 'var(--border)' }}
-        >
+        <div className="mt-16 pt-8 border-t grid grid-cols-2 gap-3" style={{ borderColor: 'var(--border)' }}>
           {prevChapter ? (
             <Link
               href={`${basePath}/${book.id}/chapters/${prevChapter.id}`}
-              className="text-sm"
-              style={{ color: 'var(--accent)' }}
+              className="wc-card rounded-xl border p-4 flex flex-col gap-1 group"
             >
-              ← {prevChapter.titleZh}
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>← 上一章</span>
+              <span className="text-sm font-medium leading-snug line-clamp-2"
+                style={{ color: 'var(--accent)' }}>
+                {prevChapter.titleZh}
+              </span>
             </Link>
           ) : (
-            <span className="text-sm cursor-not-allowed" style={{ color: 'var(--text-muted)', opacity: 0.4 }}>
-              ← 已是第一章
-            </span>
+            <div />
           )}
           {nextChapter ? (
             <Link
               href={`${basePath}/${book.id}/chapters/${nextChapter.id}`}
-              className="text-sm"
-              style={{ color: 'var(--accent)' }}
+              className="wc-card rounded-xl border p-4 flex flex-col gap-1 text-right col-start-2"
             >
-              {nextChapter.titleZh} →
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>下一章 →</span>
+              <span className="text-sm font-medium leading-snug line-clamp-2"
+                style={{ color: 'var(--accent)' }}>
+                {nextChapter.titleZh}
+              </span>
             </Link>
           ) : (
-            <span className="text-sm cursor-not-allowed" style={{ color: 'var(--text-muted)', opacity: 0.4 }}>
-              已是最后一章 →
-            </span>
+            <div className="wc-card rounded-xl border p-4 text-right opacity-40">
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>已是最后一章</span>
+            </div>
           )}
         </div>
 
-        <div className="pb-16" />
+        <div className="pb-20" />
       </main>
 
       {/* 备注抽屉 */}
