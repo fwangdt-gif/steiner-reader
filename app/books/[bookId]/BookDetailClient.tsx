@@ -43,8 +43,7 @@ export default function BookDetailClient({ book }: { book: Book }) {
       {/* 继续阅读按钮（有记录才显示） */}
       {lastChapter && (
         <div
-          className="mb-6 p-4 rounded-xl border flex items-center justify-between"
-          style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
+          className="wc-card mb-6 p-4 rounded-xl border flex items-center justify-between"
         >
           <div>
             <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>上次阅读</p>
@@ -100,10 +99,10 @@ export default function BookDetailClient({ book }: { book: Book }) {
               {isPublished ? (
                 <Link
                   href={`/books/${book.id}/chapters/${chapter.id}`}
-                  className="flex items-center justify-between p-4 rounded-xl border group transition-colors"
+                  className="wc-card flex items-center justify-between p-4 rounded-xl border group transition-colors"
                   style={{
-                    backgroundColor: isCurrent ? 'var(--accent-light)' : 'var(--surface-raised)',
-                    borderColor: isCurrent ? 'var(--accent)' : 'var(--border)',
+                    borderColor: isCurrent ? 'var(--accent)' : undefined,
+                    backgroundColor: isCurrent ? 'var(--accent-light)' : undefined,
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0">

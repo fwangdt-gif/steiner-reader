@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getLocalBook } from '@/lib/local-books'
+import { createClient } from '@/lib/supabase/client'
 import type { Book } from '@/lib/data'
 
 export default function LocalBookPage() {
@@ -11,15 +12,54 @@ export default function LocalBookPage() {
   const [book, setBook] = useState<Book | null | undefined>(undefined)
 
   useEffect(() => {
-    setBook(getLocalBook(bookId) ?? null)
+    async function load() {
+      // Fast path: localStorage
+      const local = getLocalBook(bookId)
+      if (local) { setBook(local); return }
+
+      // Fallback: Supabase
+      const supabase = createClient()
+
+      const { data: bookRow } = await supabase
+        .from('local_books')
+        .select('id, title, author, description')
+        .eq('id', bookId)
+        .single()
+
+      if (!bookRow) { setBook(null); return }
+
+      const { data: chapterRows } = await supabase
+        .from('chapters')
+        .select('id, title, order_index')
+        .eq('book_id', bookId)
+        .order('order_index')
+
+      setBook({
+        id: bookRow.id,
+        titleZh: bookRow.title,
+        titleOriginal: bookRow.title,
+        author: bookRow.author ?? '',
+        description: bookRow.description ?? '',
+        coverColor: '#4a6fa5',
+        publishedYear: new Date().getFullYear(),
+        chapters: (chapterRows ?? []).map((ch) => ({
+          id: ch.id,
+          bookId: bookRow.id,
+          title: ch.title,
+          titleZh: ch.title,
+          orderIndex: ch.order_index,
+          status: 'published' as const,
+          blocks: [],
+        })),
+      })
+    }
+    load()
   }, [bookId])
 
-  // 加载中
   if (book === undefined) return null
 
-  // 找不到
   if (book === null) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--surface)' }}>
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <p className="mb-4 text-sm" style={{ color: 'var(--text-muted)' }}>未找到本地书籍</p>
         <Link href="/" className="text-sm" style={{ color: 'var(--accent)' }}>← 返回书库</Link>
@@ -28,19 +68,14 @@ export default function LocalBookPage() {
   )
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
-      <header
-        className="sticky top-0 z-10 border-b"
-        style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
-      >
+    <div className="min-h-screen">
+      <header className="wc-header sticky top-0 z-10 border-b">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link href="/" className="text-sm" style={{ color: 'var(--text-secondary)' }}>← 书库</Link>
           <span style={{ color: 'var(--border)' }}>|</span>
           <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{book.titleZh}</span>
-          <span
-            className="ml-auto text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-muted)' }}
-          >
+          <span className="ml-auto text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-muted)' }}>
             本地
           </span>
         </div>
@@ -49,14 +84,9 @@ export default function LocalBookPage() {
       <main className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="w-10 h-1 rounded-full mb-4" style={{ backgroundColor: book.coverColor }} />
-          {book.titleOriginal !== book.titleZh && (
-            <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
-              {book.titleOriginal}
-            </p>
-          )}
           <h1 className="text-2xl font-semibold mb-1">{book.titleZh}</h1>
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-            {book.author} · {book.publishedYear}
+            {book.author}
           </p>
           {book.description && (
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
@@ -65,31 +95,51 @@ export default function LocalBookPage() {
           )}
         </div>
 
-        <h2
-          className="text-xs font-semibold uppercase tracking-widest mb-4"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          章节目录
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+            章节目录
+          </h2>
+          <Link
+            href={`/local/${book.id}/edit`}
+            className="text-xs px-3 py-1 rounded-lg border"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+          >
+            编辑章节
+          </Link>
+        </div>
         <div className="flex flex-col gap-2">
           {book.chapters.map((chapter, idx) => (
-            <Link
+            <div
               key={chapter.id}
-              href={`/local/${book.id}/chapters/${chapter.id}`}
-              className="flex items-center justify-between p-4 rounded-xl border"
-              style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
+              className="wc-card flex items-center gap-3 p-4 rounded-xl border"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span
-                  className="text-xs w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-medium"
-                  style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}
+              {/* 序号 */}
+              <span className="text-xs w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-medium"
+                style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
+                {idx + 1}
+              </span>
+
+              {/* 标题 */}
+              <p className="text-sm font-medium truncate flex-1 min-w-0">{chapter.titleZh}</p>
+
+              {/* 操作 */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Link
+                  href={`/local/${book.id}/edit#${chapter.id}`}
+                  className="text-xs px-2.5 py-1 rounded-lg border"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
                 >
-                  {idx + 1}
-                </span>
-                <p className="text-sm font-medium truncate">{chapter.titleZh}</p>
+                  编辑
+                </Link>
+                <Link
+                  href={`/local/${book.id}/chapters/${chapter.id}`}
+                  className="text-xs px-2.5 py-1 rounded-lg text-white"
+                  style={{ backgroundColor: 'var(--accent)' }}
+                >
+                  阅读
+                </Link>
               </div>
-              <span className="text-sm ml-3 flex-shrink-0" style={{ color: 'var(--accent)' }}>阅读 →</span>
-            </Link>
+            </div>
           ))}
         </div>
       </main>

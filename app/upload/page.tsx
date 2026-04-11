@@ -84,11 +84,8 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
-      <header
-        className="sticky top-0 z-10 border-b"
-        style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
-      >
+    <div className="min-h-screen">
+      <header className="wc-header sticky top-0 z-10 border-b">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link href="/" className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             ← 书库
@@ -109,8 +106,7 @@ export default function UploadPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {/* 书籍基本信息 */}
           <div
-            className="p-5 rounded-xl border"
-            style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
+            className="wc-card p-5 rounded-xl border"
           >
             <h2 className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
               书籍信息
@@ -195,8 +191,7 @@ export default function UploadPage() {
 
           {/* 第一章 */}
           <div
-            className="p-5 rounded-xl border"
-            style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
+            className="wc-card p-5 rounded-xl border"
           >
             <h2 className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
               第一章内容

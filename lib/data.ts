@@ -29,6 +29,7 @@ export interface Book {
   coverColor: string
   publishedYear: number
   chapters: Chapter[]
+  category?: string
 }
 
 // ── 书目数据 ──────────────────────────────────────────────────────

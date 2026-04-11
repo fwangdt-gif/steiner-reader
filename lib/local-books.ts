@@ -24,6 +24,11 @@ export function getLocalBook(bookId: string): Book | undefined {
   return getLocalBooks().find((b) => b.id === bookId)
 }
 
+export function deleteLocalBook(bookId: string): void {
+  const books = getLocalBooks().filter((b) => b.id !== bookId)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(books))
+}
+
 export function getLocalAdjacentChapters(bookId: string, chapterId: string) {
   const book = getLocalBook(bookId)
   if (!book) return { prev: null, next: null }

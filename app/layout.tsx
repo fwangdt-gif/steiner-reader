@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className="h-full">
-      <body className="min-h-full flex flex-col bg-[#faf9f7] text-[#1c1917]">
+      <body className="min-h-full flex flex-col">
         {children}
       </body>
     </html>

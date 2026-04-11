@@ -133,7 +133,8 @@
         "status": "draft",
         "blocks": []
       }
-    ]
+    ],
+    "category": "人智学"
   },
   {
     "id": "knowledge-of-higher-worlds",
@@ -186,7 +187,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "灵修"
   },
   {
     "id": "philosophy-of-freedom",
@@ -305,7 +307,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "人智学"
   },
   {
     "id": "local-1775812380328",

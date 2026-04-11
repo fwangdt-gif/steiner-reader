@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { Chapter, ContentBlock, Book } from '@/lib/data'
+import Annotations from '@/app/Annotations'
 
 // ── 笔记类型 ──────────────────────────────────────────────────────
 interface Note {
@@ -160,10 +161,18 @@ function BlockItem({
   block,
   note,
   onNoteClick,
+  onAnnotationClick,
+  showAnnotations,
+  bookId,
+  chapterId,
 }: {
   block: ContentBlock
   note: Note | null
   onNoteClick: (block: ContentBlock) => void
+  onAnnotationClick: (block: ContentBlock) => void
+  showAnnotations: boolean
+  bookId: string
+  chapterId: string
 }) {
   const hasNote = !!note
 
@@ -230,51 +239,75 @@ function BlockItem({
 
   // 普通段落
   return (
-    <div className="relative group my-2">
-      {/* 左侧备注指示线 */}
-      {hasNote && (
-        <div
-          className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
-          style={{ backgroundColor: 'var(--accent)' }}
-        />
-      )}
-
-      <div className={hasNote ? 'pl-4' : ''}>
-        <p
-          className="reading-text"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          {block.translationText}
-        </p>
-
-        {/* 已有备注预览 */}
+    <div className="my-2">
+      <div className="relative group">
+        {/* 左侧备注指示线 */}
         {hasNote && (
           <div
-            className="mt-2 text-xs px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--warm-100)',
-              color: 'var(--text-secondary)',
-              lineHeight: '1.6',
-            }}
-          >
-            📝 {note.text.slice(0, 60)}{note.text.length > 60 ? '…' : ''}
-          </div>
+            className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
+            style={{ backgroundColor: 'var(--accent)' }}
+          />
         )}
+
+        <div className={hasNote ? 'pl-4' : ''}>
+          <p
+            className="reading-text"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {block.translationText}
+          </p>
+
+          {/* 已有备注预览 */}
+          {hasNote && (
+            <div
+              className="mt-2 text-xs px-3 py-2 rounded-lg"
+              style={{
+                backgroundColor: 'var(--warm-100)',
+                color: 'var(--text-secondary)',
+                lineHeight: '1.6',
+              }}
+            >
+              📝 {note.text.slice(0, 60)}{note.text.length > 60 ? '…' : ''}
+            </div>
+          )}
+        </div>
+
+        {/* 操作按钮行 */}
+        <div className="absolute -right-1 top-1 flex flex-col gap-1">
+          <button
+            onClick={() => onNoteClick(block)}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
+            style={{
+              backgroundColor: hasNote ? 'var(--accent)' : 'var(--warm-200)',
+              color: hasNote ? 'white' : 'var(--text-muted)',
+            }}
+            title={hasNote ? '编辑备注' : '添加备注'}
+          >
+            {hasNote ? '📝' : '+'}
+          </button>
+          <button
+            onClick={() => onAnnotationClick(block)}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
+            style={{
+              backgroundColor: showAnnotations ? 'var(--accent)' : 'var(--warm-200)',
+              color: showAnnotations ? 'white' : 'var(--text-muted)',
+            }}
+            title="共读批注"
+          >
+            💬
+          </button>
+        </div>
       </div>
 
-      {/* 备注按钮（段落右侧，悬停/常驻） */}
-      <button
-        onClick={() => onNoteClick(block)}
-        className="absolute -right-1 top-1 w-7 h-7 rounded-full flex items-center justify-center text-xs"
-        style={{
-          backgroundColor: hasNote ? 'var(--accent)' : 'var(--warm-200)',
-          color: hasNote ? 'white' : 'var(--text-muted)',
-          flexShrink: 0,
-        }}
-        title={hasNote ? '编辑备注' : '添加备注'}
-      >
-        {hasNote ? '📝' : '+'}
-      </button>
+      {/* 共读批注面板 */}
+      {showAnnotations && (
+        <Annotations
+          bookId={bookId}
+          chapterId={chapterId}
+          blockId={block.id}
+          onClose={() => onAnnotationClick(block)}
+        />
+      )}
     </div>
   )
 }
@@ -295,6 +328,7 @@ export default function ReadingClient({
 }) {
   const [notes, setNotes] = useState<Record<string, Note>>({})
   const [activeBlock, setActiveBlock] = useState<ContentBlock | null>(null)
+  const [activeAnnotationBlockId, setActiveAnnotationBlockId] = useState<string | null>(null)
   const [dark, setDark] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -373,7 +407,7 @@ export default function ReadingClient({
   const noteCount = Object.keys(notes).length
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
+    <div className="reading-page">
       {/* 滚动进度条 */}
       <div className="fixed top-0 left-0 right-0 z-50 h-0.5" style={{ backgroundColor: 'var(--border)' }}>
         <div
@@ -383,10 +417,7 @@ export default function ReadingClient({
       </div>
 
       {/* 顶部导航 */}
-      <header
-        className="sticky top-0 z-30 border-b"
-        style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
-      >
+      <header className="wc-header sticky top-0 z-30 border-b">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <Link
             href={`${basePath}/${book.id}`}
@@ -481,6 +512,12 @@ export default function ReadingClient({
                 block={block}
                 note={notes[block.id] ?? null}
                 onNoteClick={setActiveBlock}
+                onAnnotationClick={(b) =>
+                  setActiveAnnotationBlockId((prev) => (prev === b.id ? null : b.id))
+                }
+                showAnnotations={activeAnnotationBlockId === block.id}
+                bookId={book.id}
+                chapterId={chapter.id}
               />
             ))}
           </div>

@@ -13,12 +13,9 @@ export default async function BookDetailPage({ params }: Props) {
   if (!book) notFound()
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
+    <div className="min-h-screen">
       {/* 顶部导航 */}
-      <header
-        className="sticky top-0 z-10 border-b"
-        style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
-      >
+      <header className="wc-header sticky top-0 z-10 border-b">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link
             href="/"

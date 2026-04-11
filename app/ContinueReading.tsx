@@ -27,8 +27,7 @@ export default function ContinueReading() {
 
   return (
     <div
-      className="mb-8 p-4 rounded-xl border flex items-center justify-between"
-      style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
+      className="wc-card mb-8 p-4 rounded-xl border flex items-center justify-between"
     >
       <div>
         <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>上次阅读</p>
