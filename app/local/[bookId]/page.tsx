@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getLocalBook } from '@/lib/local-books'
+import ReflectionsSection from '@/app/ReflectionsSection'
 
 interface ChapterRow {
   id: string
@@ -152,6 +153,11 @@ export default function LocalBookPage() {
             ))}
           </div>
         )}
+
+        {/* 读后感 */}
+        <div className="mt-8">
+          <ReflectionsSection bookId={book.id} />
+        </div>
       </main>
     </div>
   )

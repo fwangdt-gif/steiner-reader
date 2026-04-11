@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Book } from '@/lib/data'
+import ReflectionsSection from '@/app/ReflectionsSection'
 
 // 将 text 中匹配 query 的部分用高亮 span 包裹
 function highlight(text: string, query: string) {
@@ -162,6 +163,11 @@ export default function BookDetailClient({ book }: { book: Book }) {
             </div>
           )
         })}
+      </div>
+
+      {/* 读后感 */}
+      <div className="mt-8">
+        <ReflectionsSection bookId={book.id} />
       </div>
     </div>
   )

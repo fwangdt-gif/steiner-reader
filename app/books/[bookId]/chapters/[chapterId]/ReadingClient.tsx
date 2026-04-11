@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Chapter, ContentBlock, Book } from '@/lib/data'
 import Annotations from '@/app/Annotations'
 import CommentsSection from '@/app/CommentsSection'
+import NotesPanel from '@/app/NotesPanel'
 
 // ── 笔记类型 ──────────────────────────────────────────────────────
 interface Note {
@@ -572,12 +573,11 @@ export default function ReadingClient({
         <CommentsSection bookId={book.id} chapterId={chapter.id} />
       </main>
 
-      {/* 备注抽屉 */}
+      {/* 笔记抽屉（云端存储） */}
       {activeBlock && (
-        <NoteSheet
-          block={activeBlock}
-          note={notes[activeBlock.id] ?? null}
-          onSave={handleSaveNote}
+        <NotesPanel
+          bookId={book.id}
+          chapterId={chapter.id}
           onClose={() => setActiveBlock(null)}
         />
       )}
