@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -150,7 +150,9 @@ function StatusBadge({ status, lastSaved }: { status: SaveStatus; lastSaved: Dat
 export default function EditBookPage() {
   const { bookId } = useParams<{ bookId: string }>()
   const router = useRouter()
-  const supabase = createClient()
+  // Stabilize the client so it doesn't change on every render
+  // (a new object in dep arrays would trigger infinite re-renders)
+  const supabase = useMemo(() => createClient(), [])
 
   const [bookTitle, setBookTitle] = useState('')
   const [chapters, setChapters] = useState<EditChapter[]>([])
@@ -281,23 +283,29 @@ export default function EditBookPage() {
   // ── Add ───────────────────────────────────────────────────────────
 
   const handleAdd = async () => {
-    const orderIndex = chaptersRef.current.length
-    const { data, error } = await supabase
-      .from('chapters')
-      .insert({ book_id: bookId, title: '新章节', content: '', order_index: orderIndex })
-      .select('id')
-      .single()
+    try {
+      const orderIndex = chaptersRef.current.length
+      const { data, error } = await supabase
+        .from('chapters')
+        .insert({ book_id: bookId, title: '新章节', content: '', order_index: orderIndex })
+        .select('id')
+        .single()
 
-    if (error || !data) {
-      alert(`新增章节失败：${error?.message ?? '未知错误'}`)
-      return
+      if (error || !data) {
+        console.error('新增章节失败:', error)
+        alert(`新增章节失败：${error?.message ?? '未知错误'}`)
+        return
+      }
+
+      setChapters((prev) => [
+        ...prev,
+        { id: data.id, title: '新章节', content: '', order_index: orderIndex, dirty: false },
+      ])
+      setNewChapterId(data.id)
+    } catch (err) {
+      console.error('新增章节异常:', err)
+      alert(`新增章节出错：${err instanceof Error ? err.message : String(err)}`)
     }
-
-    setChapters((prev) => [
-      ...prev,
-      { id: data.id, title: '新章节', content: '', order_index: orderIndex, dirty: false },
-    ])
-    setNewChapterId(data.id)
   }
 
   // ── Delete ────────────────────────────────────────────────────────
