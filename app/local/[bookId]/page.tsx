@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getLocalBook } from '@/lib/local-books'
 
 interface ChapterRow {
   id: string
@@ -28,23 +29,35 @@ export default function LocalBookPage() {
     async function load() {
       const supabase = createClient()
 
+      // 1. Try Supabase first (cloud books created via /my-books/new or published)
       const { data: bookRow } = await supabase
         .from('local_books')
         .select('id, title, author, description')
         .eq('id', bookId)
         .single()
 
-      if (!bookRow) { setBook(null); return }
+      if (bookRow) {
+        setBook({
+          id: bookRow.id,
+          title: bookRow.title,
+          author: bookRow.author ?? '',
+          description: bookRow.description ?? '',
+          coverColor: '#4a6fa5',
+        })
+      } else {
+        // 2. Fallback: try localStorage for legacy local-only books
+        const local = getLocalBook(bookId)
+        if (!local) { setBook(null); return }
+        setBook({
+          id: local.id,
+          title: local.titleZh,
+          author: local.author ?? '',
+          description: local.description ?? '',
+          coverColor: local.coverColor,
+        })
+      }
 
-      setBook({
-        id: bookRow.id,
-        title: bookRow.title,
-        author: bookRow.author ?? '',
-        description: bookRow.description ?? '',
-        coverColor: '#4a6fa5',
-      })
-
-      // Always fetch chapters fresh from Supabase — never use localStorage
+      // Always fetch chapters fresh from Supabase
       const { data: chapterRows } = await supabase
         .from('chapters')
         .select('id, title, order_index')
