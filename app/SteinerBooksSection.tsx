@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { CATEGORIES } from '@/lib/data'
 import { createClient } from '@/lib/supabase/client'
 import type { Book } from '@/lib/data'
 
@@ -48,10 +47,7 @@ export default function SteinerBooksSection({ books, query = '' }: { books: Book
     setToggling(null)
   }
 
-  const categories = useMemo(() => {
-    const used = new Set(books.map((b) => b.category).filter(Boolean))
-    return CATEGORIES.filter((c) => used.has(c))
-  }, [books])
+  const categories = ['人智学', '教育学', '医学', '优律师美', '灵修'] as const
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
