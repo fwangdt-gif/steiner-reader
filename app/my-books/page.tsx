@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getLocalBooks, deleteLocalBook } from '@/lib/local-books'
+import type { Book } from '@/lib/data'
 
 interface BookRow {
   id: string
@@ -19,16 +21,22 @@ export default function MyBooksPage() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const [books, setBooks] = useState<BookRow[]>([])
+  const [localBooks, setLocalBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [migrating, setMigrating] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
+    // Load localStorage books immediately (client-side only)
+    setLocalBooks(getLocalBooks())
+
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+      setUserId(user.id)
 
-      // Check role — gracefully handles missing column (defaults to non-admin)
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -37,11 +45,10 @@ export default function MyBooksPage() {
       const admin = profile?.role === 'admin'
       setIsAdmin(admin)
 
-      // Fetch books — admin sees all, users see only their own
-      // Split into two queries to avoid join failures when profiles are missing
+      // Fetch cloud books — admin sees all, users see only their own
       let booksQuery = supabase
         .from('local_books')
-        .select('id, title, author, category, updated_at, user_id, chapters(id)')
+        .select('id, title, author, category, updated_at, user_id')
         .order('updated_at', { ascending: false })
 
       if (!admin) booksQuery = booksQuery.eq('user_id', user.id)
@@ -54,11 +61,23 @@ export default function MyBooksPage() {
         return
       }
 
-      if (!booksData) { setLoading(false); return }
+      if (!booksData || booksData.length === 0) { setLoading(false); return }
 
-      // For admin: fetch display names separately
+      // Chapter counts (separate query — no FK join)
+      const bookIds = booksData.map((b) => b.id)
+      const { data: chapterRows } = await supabase
+        .from('chapters')
+        .select('book_id')
+        .in('book_id', bookIds)
+
+      const countMap: Record<string, number> = {}
+      for (const ch of (chapterRows ?? [])) {
+        countMap[ch.book_id] = (countMap[ch.book_id] ?? 0) + 1
+      }
+
+      // For admin: uploader display names
       let nameMap: Record<string, string> = {}
-      if (admin && booksData.length > 0) {
+      if (admin) {
         const userIds = [...new Set(booksData.map((b) => b.user_id).filter(Boolean))]
         const { data: profiles } = await supabase
           .from('profiles')
@@ -75,7 +94,7 @@ export default function MyBooksPage() {
         author: row.author ?? '',
         category: row.category ?? null,
         updated_at: row.updated_at,
-        chapter_count: Array.isArray(row.chapters) ? row.chapters.length : 0,
+        chapter_count: countMap[row.id] ?? 0,
         uploader_name: admin ? (nameMap[row.user_id] ?? '未知') : undefined,
       })))
       setLoading(false)
@@ -97,14 +116,74 @@ export default function MyBooksPage() {
     setDeleting(null)
   }
 
-  // ── Loading state ─────────────────────────────────────────────────
+  const handleMigrate = async (book: Book) => {
+    if (!userId) { alert('请先登录'); return }
+    if (!confirm(`将《${book.titleZh}》存入云端？迁移后将从本地删除。`)) return
+    setMigrating(book.id)
+    try {
+      // Create local_books entry
+      const { data: newBook, error: bookErr } = await supabase
+        .from('local_books')
+        .insert({
+          title: book.titleZh,
+          author: book.author,
+          description: book.description ?? null,
+          category: book.category ?? null,
+          user_id: userId,
+          updated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (bookErr || !newBook) {
+        alert(`迁移失败：${bookErr?.message ?? '未知错误'}`)
+        return
+      }
+      const newId = newBook.id
+
+      // Move or insert chapters
+      const { data: existingChapters } = await supabase
+        .from('chapters').select('id').eq('book_id', book.id)
+
+      if (existingChapters && existingChapters.length > 0) {
+        await supabase.from('chapters').update({ book_id: newId }).eq('book_id', book.id)
+      } else if (book.chapters.length > 0) {
+        await supabase.from('chapters').insert(
+          book.chapters.map((ch, idx) => ({
+            book_id: newId,
+            title: ch.titleZh || ch.title || `第 ${idx + 1} 章`,
+            content: JSON.stringify(ch.blocks ?? []),
+            order_index: ch.orderIndex ?? idx,
+          }))
+        )
+      }
+
+      // Remove from localStorage, add to cloud list
+      deleteLocalBook(book.id)
+      setLocalBooks(getLocalBooks())
+      setBooks((prev) => [{
+        id: newId,
+        title: book.titleZh,
+        author: book.author ?? '',
+        category: book.category ?? null,
+        updated_at: new Date().toISOString(),
+        chapter_count: book.chapters.length,
+        uploader_name: isAdmin ? '我' : undefined,
+      }, ...prev])
+    } catch (err) {
+      console.error(err)
+      alert('迁移失败，请重试')
+    } finally {
+      setMigrating(null)
+    }
+  }
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <p className="text-sm" style={{ color: 'var(--text-muted)' }}>加载中…</p>
     </div>
   )
 
-  // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen">
       <header className="wc-header sticky top-0 z-10 border-b">
@@ -127,28 +206,84 @@ export default function MyBooksPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8">
-        {/* Admin banner */}
         {isAdmin && (
           <div
             className="mb-5 px-4 py-2.5 rounded-lg text-sm"
             style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}
           >
-            管理员模式 · 显示全站所有书籍
+            管理员模式 · 云端显示全站所有书籍
           </div>
         )}
 
-        {/* Page heading */}
+        {/* ── Local (localStorage) books ── */}
+        {localBooks.length > 0 && (
+          <section className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  本地书籍
+                </h2>
+                <span className="text-xs px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-secondary)' }}>
+                  仅此设备可见
+                </span>
+              </div>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{localBooks.length} 本</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {localBooks.map((book) => (
+                <div key={book.id} className="wc-card rounded-xl border p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/local/${book.id}`}
+                        className="text-sm font-semibold block truncate hover:underline"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {book.titleZh}
+                      </Link>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        {book.author}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                        {book.chapters.length} 章 · 仅存于本地
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Link
+                        href={`/local/${book.id}/edit`}
+                        className="text-xs px-2.5 py-1.5 rounded-lg border"
+                        style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+                      >
+                        编辑章节
+                      </Link>
+                      <button
+                        onClick={() => handleMigrate(book)}
+                        disabled={migrating === book.id}
+                        className="text-xs px-2.5 py-1.5 rounded-lg border disabled:opacity-40"
+                        style={{ borderColor: '#6a8f6a', color: '#6a8f6a' }}
+                      >
+                        {migrating === book.id ? '迁移中…' : '存入云端'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Cloud books ── */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {isAdmin ? '全站书籍' : '我的书籍'}
-          </h1>
+          <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {isAdmin ? '全站云端书籍' : '我的云端书籍'}
+          </h2>
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
             共 {books.length} 本
           </span>
         </div>
 
-        {/* Empty state */}
-        {books.length === 0 && (
+        {books.length === 0 && localBooks.length === 0 && (
           <div className="text-center py-20">
             <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>
               还没有书籍，点击右上角新建
@@ -163,12 +298,16 @@ export default function MyBooksPage() {
           </div>
         )}
 
-        {/* Book list */}
+        {books.length === 0 && localBooks.length > 0 && (
+          <p className="text-sm py-4" style={{ color: 'var(--text-muted)' }}>
+            云端暂无书籍。点击上方「存入云端」将本地书籍迁移过来。
+          </p>
+        )}
+
         <div className="flex flex-col gap-3">
           {books.map((book) => (
             <div key={book.id} className="wc-card rounded-xl border p-4">
               <div className="flex items-start gap-3">
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <Link
                     href={`/local/${book.id}`}
@@ -200,7 +339,6 @@ export default function MyBooksPage() {
                   </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Link
                     href={`/my-books/${book.id}/edit`}

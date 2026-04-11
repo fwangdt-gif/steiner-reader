@@ -127,15 +127,18 @@ function EditBookModal({ book, onSave, onClose }: {
 }
 
 // ── Book card ─────────────────────────────────────────────────────
-function BookCard({ book, isOwn, uploader, category, onEdit, onDelete, onPublish, publishing }: {
+function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, onPublish, publishing, onMigrate, migrating }: {
   book: Book
   isOwn: boolean
+  isAdmin?: boolean
   uploader?: string
   category?: string | null
   onEdit?: () => void
   onDelete?: () => void
   onPublish?: () => void
   publishing?: boolean
+  onMigrate?: () => void
+  migrating?: boolean
 }) {
   return (
     <div className="wc-card rounded-xl border overflow-hidden">
@@ -171,7 +174,7 @@ function BookCard({ book, isOwn, uploader, category, onEdit, onDelete, onPublish
             {book.chapters.length} 个章节
           </span>
           <div className="flex gap-2 flex-wrap justify-end">
-            {isOwn && (
+            {(isOwn || isAdmin) && (
               <>
                 <button onClick={onEdit}
                   className="text-sm px-3 py-1.5 rounded-lg border"
@@ -183,11 +186,20 @@ function BookCard({ book, isOwn, uploader, category, onEdit, onDelete, onPublish
                   style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                   编辑内容
                 </Link>
-                <button onClick={onPublish} disabled={publishing}
-                  className="text-sm px-3 py-1.5 rounded-lg border disabled:opacity-40"
-                  style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}>
-                  {publishing ? '发布中…' : '发布到书库'}
-                </button>
+                {isOwn && onMigrate && (
+                  <button onClick={onMigrate} disabled={migrating}
+                    className="text-sm px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                    style={{ borderColor: '#6a8f6a', color: '#6a8f6a' }}>
+                    {migrating ? '迁移中…' : '存入云端'}
+                  </button>
+                )}
+                {isOwn && (
+                  <button onClick={onPublish} disabled={publishing}
+                    className="text-sm px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                    style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}>
+                    {publishing ? '发布中…' : '发布到书库'}
+                  </button>
+                )}
                 <button onClick={onDelete}
                   className="text-sm px-3 py-1.5 rounded-lg border"
                   style={{ borderColor: '#dc2626', color: '#dc2626' }}>
@@ -297,14 +309,16 @@ function FilterBar({
 
 // ── Main component ────────────────────────────────────────────────
 export default function LocalBooks() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [localBooks, setLocalBooks] = useState<Book[]>([])
   const [myCloudBooks, setMyCloudBooks] = useState<CloudBook[]>([])
   const [othersBooks, setOthersBooks] = useState<CloudBook[]>([])
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [cloudLoaded, setCloudLoaded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [publishing, setPublishing] = useState<string | null>(null)
+  const [migrating, setMigrating] = useState<string | null>(null)
   const [editingBook, setEditingBook] = useState<Book | null>(null)
 
   // ── Filter state ──────────────────────────────────────────────────
@@ -373,6 +387,82 @@ export default function LocalBooks() {
     setMyCloudBooks((prev) => prev.filter(({ book }) => book.id !== bookId))
   }
 
+  const handleMigrateToCloud = async (book: Book) => {
+    if (!isLoggedIn) { alert('请先登录后再存入云端'); return }
+    if (!confirm(`将《${book.titleZh}》存入云端？\n迁移后将从本地删除，可在「我的图书管理」中管理。`)) return
+    setMigrating(book.id)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { alert('请先登录'); return }
+
+      // 1. Create local_books entry in Supabase
+      const { data: newBook, error: bookErr } = await supabase
+        .from('local_books')
+        .insert({
+          title: book.titleZh,
+          author: book.author,
+          description: book.description ?? null,
+          category: book.category ?? null,
+          user_id: user.id,
+          updated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (bookErr || !newBook) {
+        alert(`迁移失败：${bookErr?.message ?? '未知错误'}`)
+        return
+      }
+      const newId = newBook.id
+
+      // 2. Check if chapters already exist in Supabase under old localStorage ID
+      const { data: existingChapters } = await supabase
+        .from('chapters')
+        .select('id')
+        .eq('book_id', book.id)
+
+      if (existingChapters && existingChapters.length > 0) {
+        // Move existing Supabase chapters to new book ID
+        await supabase.from('chapters').update({ book_id: newId }).eq('book_id', book.id)
+      } else if (book.chapters.length > 0) {
+        // Insert chapters from localStorage data
+        const toInsert = book.chapters.map((ch, idx) => ({
+          book_id: newId,
+          title: ch.titleZh || ch.title || `第 ${idx + 1} 章`,
+          content: JSON.stringify(ch.blocks ?? []),
+          order_index: ch.orderIndex ?? idx,
+        }))
+        await supabase.from('chapters').insert(toInsert)
+      }
+
+      // 3. Remove from localStorage and refresh
+      deleteLocalBook(book.id)
+      setLocalBooks(getLocalBooks())
+
+      // 4. Add to cloud list
+      const { data: profile } = await supabase
+        .from('profiles').select('display_name').eq('id', user.id).single()
+      const cloudBook: CloudBook = {
+        book: {
+          ...book,
+          id: newId,
+          chapters: book.chapters.map((ch) => ({ ...ch, bookId: newId })),
+        },
+        user_id: user.id,
+        uploader: profile?.display_name ?? '我',
+        isOwn: true,
+        category: book.category ?? null,
+      }
+      setMyCloudBooks((prev) => [cloudBook, ...prev])
+      alert(`《${book.titleZh}》已成功存入云端！`)
+    } catch (err) {
+      console.error(err)
+      alert('迁移失败，请重试')
+    } finally {
+      setMigrating(null)
+    }
+  }
+
   const handleSaveEdit = async (updated: Book) => {
     saveLocalBook(updated)
     setLocalBooks(getLocalBooks())
@@ -426,6 +516,10 @@ export default function LocalBooks() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setCloudLoaded(true); return }
       setIsLoggedIn(true)
+
+      const { data: profile } = await supabase
+        .from('profiles').select('role').eq('id', user.id).single()
+      if (profile?.role === 'admin') setIsAdmin(true)
 
       const { data } = await supabase
         .from('local_books')
@@ -535,6 +629,8 @@ export default function LocalBooks() {
               onDelete={() => handleDeleteLocal(book.id)}
               onPublish={() => handlePublish(book)}
               publishing={publishing === book.id}
+              onMigrate={isLoggedIn ? () => handleMigrateToCloud(book) : undefined}
+              migrating={migrating === book.id}
             />
           ))}
 
@@ -544,6 +640,7 @@ export default function LocalBooks() {
               key={book.id}
               book={book}
               isOwn={true}
+              isAdmin={isAdmin}
               category={category}
               onEdit={() => setEditingBook(book)}
               onDelete={() => handleDeleteCloud(book.id)}
@@ -600,8 +697,11 @@ export default function LocalBooks() {
                 key={book.id}
                 book={book}
                 isOwn={false}
+                isAdmin={isAdmin}
                 uploader={uploader}
                 category={category}
+                onEdit={isAdmin ? () => setEditingBook(book) : undefined}
+                onDelete={isAdmin ? () => handleDeleteCloud(book.id) : undefined}
               />
             ))}
           </div>
