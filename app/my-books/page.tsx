@@ -38,14 +38,15 @@ export default function MyBooksPage() {
       setIsAdmin(admin)
 
       // Fetch books — admin sees all, users see only their own
-      let query = supabase
+      // Split into two queries to avoid join failures when profiles are missing
+      let booksQuery = supabase
         .from('local_books')
-        .select('id, title, author, category, updated_at, user_id, chapters(id), profiles(display_name)')
+        .select('id, title, author, category, updated_at, user_id, chapters(id)')
         .order('updated_at', { ascending: false })
 
-      if (!admin) query = query.eq('user_id', user.id)
+      if (!admin) booksQuery = booksQuery.eq('user_id', user.id)
 
-      const { data, error } = await query
+      const { data: booksData, error } = await booksQuery
 
       if (error) {
         console.error('加载书籍失败:', error)
@@ -53,23 +54,30 @@ export default function MyBooksPage() {
         return
       }
 
-      if (data) {
-        setBooks(data.map((row) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const p = row.profiles as any
-          const uploader: string =
-            (Array.isArray(p) ? p[0]?.display_name : p?.display_name) ?? '未知'
-          return {
-            id: row.id,
-            title: row.title,
-            author: row.author ?? '',
-            category: row.category ?? null,
-            updated_at: row.updated_at,
-            chapter_count: Array.isArray(row.chapters) ? row.chapters.length : 0,
-            uploader_name: admin ? uploader : undefined,
-          }
-        }))
+      if (!booksData) { setLoading(false); return }
+
+      // For admin: fetch display names separately
+      let nameMap: Record<string, string> = {}
+      if (admin && booksData.length > 0) {
+        const userIds = [...new Set(booksData.map((b) => b.user_id).filter(Boolean))]
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', userIds)
+        if (profiles) {
+          nameMap = Object.fromEntries(profiles.map((p) => [p.id, p.display_name ?? '未知']))
+        }
       }
+
+      setBooks(booksData.map((row) => ({
+        id: row.id,
+        title: row.title,
+        author: row.author ?? '',
+        category: row.category ?? null,
+        updated_at: row.updated_at,
+        chapter_count: Array.isArray(row.chapters) ? row.chapters.length : 0,
+        uploader_name: admin ? (nameMap[row.user_id] ?? '未知') : undefined,
+      })))
       setLoading(false)
     }
     load()
