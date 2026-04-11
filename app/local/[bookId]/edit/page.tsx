@@ -226,20 +226,21 @@ export default function EditBookPage() {
     const dirty = chaptersRef.current.filter((ch) => ch.dirty && ch.title.trim() !== '')
     if (dirty.length === 0) return
     setSaveStatus('saving')
-    try {
-      for (const ch of dirty) {
-        await supabase.from('chapters').update({
-          title: ch.title,
-          content: ch.content,
-          order_index: ch.order_index,
-          updated_at: new Date().toISOString(),
-        }).eq('id', ch.id)
-      }
+    let failed = false
+    for (const ch of dirty) {
+      const { error } = await supabase.from('chapters').update({
+        title: ch.title,
+        content: ch.content,
+        order_index: ch.order_index,
+      }).eq('id', ch.id)
+      if (error) { console.error('章节保存失败:', error); failed = true }
+    }
+    if (failed) {
+      setSaveStatus('error')
+    } else {
       setChapters((prev) => prev.map((ch) => ({ ...ch, dirty: false })))
       setLastSaved(new Date())
       setSaveStatus('saved')
-    } catch {
-      setSaveStatus('error')
     }
   }, [supabase])
 
@@ -333,16 +334,23 @@ export default function EditBookPage() {
         updated_at: new Date().toISOString(),
       }).eq('id', bookId)
 
+      let failed = false
       for (const ch of chaptersRef.current) {
-        await supabase.from('chapters').update({
+        const { error } = await supabase.from('chapters').update({
           title: ch.title,
           content: ch.content,
           order_index: ch.order_index,
-          updated_at: new Date().toISOString(),
         }).eq('id', ch.id)
+        if (error) { console.error('章节保存失败:', error.message); failed = true }
       }
 
-      await loadChapters() // reload to confirm persisted state
+      if (failed) {
+        setSaveStatus('error')
+        alert('部分章节保存失败，请检查控制台错误信息')
+        return
+      }
+
+      await loadChapters()
       setLastSaved(new Date())
       setSaveStatus('saved')
     } catch {
