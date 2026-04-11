@@ -6,6 +6,7 @@ import { getLocalBooks, saveLocalBook, deleteLocalBook } from '@/lib/local-books
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/data'
 import type { Book } from '@/lib/data'
+import SteinerBooksSection from './SteinerBooksSection'
 
 const COLORS = ['#4a6fa5', '#6a8f6a', '#7a6fa5', '#8a6244', '#6a7080']
 
@@ -277,7 +278,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 // ── 主组件 ────────────────────────────────────────────────────────
-export default function LocalBooks({ query = '' }: { query?: string }) {
+export default function LocalBooks({ query = '', steinerBooks }: { query?: string; steinerBooks?: Book[] }) {
   const supabase = useMemo(() => createClient(), [])
   const [localBooks, setLocalBooks] = useState<Book[]>([])
   const [myCloudBooks, setMyCloudBooks] = useState<CloudBook[]>([])
@@ -620,6 +621,13 @@ export default function LocalBooks({ query = '' }: { query?: string }) {
           )}
         </div>
       </section>
+
+      {/* ════════════════ Steiner 著作 ════════════════ */}
+      {steinerBooks && steinerBooks.length > 0 && (
+        <div className="mb-14">
+          <SteinerBooksSection books={steinerBooks} query={query} />
+        </div>
+      )}
 
       {/* ════════════════ 共享书库 ════════════════ */}
       <section>

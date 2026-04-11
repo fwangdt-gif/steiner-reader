@@ -91,15 +91,6 @@ export default function SteinerBooksSection({ books, query = '' }: { books: Book
       {/* Category chips */}
       {categories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-5">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className="text-xs px-3 py-1 rounded-full border transition-colors"
-            style={{
-              borderColor: selectedCategory === null ? 'var(--accent)' : 'var(--border)',
-              backgroundColor: selectedCategory === null ? 'var(--accent-light)' : 'transparent',
-              color: selectedCategory === null ? 'var(--accent)' : 'var(--text-secondary)',
-            }}
-          >全部</button>
           {categories.map((cat) => (
             <button
               key={cat}

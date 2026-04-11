@@ -5,7 +5,6 @@ import { books } from '@/lib/data'
 import AnnouncementsSection from './AnnouncementsSection'
 import ContinueReading from './ContinueReading'
 import LocalBooks from './LocalBooks'
-import SteinerBooksSection from './SteinerBooksSection'
 import UserNav from './UserNav'
 
 export default function LibraryPage() {
@@ -57,13 +56,8 @@ export default function LibraryPage() {
         {/* ── 上次阅读 ──────────────────────────────────────────── */}
         <ContinueReading />
 
-        {/* ── 我的书库 + 共享书库 ────────────────────────────────── */}
-        <LocalBooks query={query} />
-
-        {/* ── Steiner 著作 ───────────────────────────────────────── */}
-        <div className="mt-14">
-          <SteinerBooksSection books={books} query={query} />
-        </div>
+        {/* ── 我的书库 → Steiner 著作 → 共享书库 ─────────────────── */}
+        <LocalBooks query={query} steinerBooks={books} />
 
         <div className="mt-16 pb-8 text-center">
           <p className="text-xs tracking-widest" style={{ color: 'var(--text-muted)' }}>
