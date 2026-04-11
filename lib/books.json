@@ -366,5 +366,174 @@
         ]
       }
     ]
+  },
+  {
+    "id": "752c2bbd-738e-4241-8a38-d749e7920b55",
+    "titleOriginal": "圣诞节期间给教师们的演讲集",
+    "titleZh": "圣诞节期间给教师们的演讲集",
+    "author": "Steiner",
+    "description": "",
+    "coverColor": "#4a6fa5",
+    "publishedYear": 2026,
+    "category": "教育学",
+    "chapters": [
+      {
+        "id": "local-1775898074493-ch1",
+        "bookId": "752c2bbd-738e-4241-8a38-d749e7920b55",
+        "title": "第十二章",
+        "titleZh": "第十二章",
+        "orderIndex": 1,
+        "status": "published",
+        "blocks": [
+          {
+            "id": "local-1775898074493-ch1-b0",
+            "blockIndex": 0,
+            "blockType": "paragraph",
+            "originalText": "12章'\n德语：\nEs dürfte meine Schilderung in den letzten Tagen auf Sie den Eindruck gemacht haben, daß gerade die auf anthroposophische Menschenerkenntnis begründete Erziehungs- und Unterrichtskunst in allererster Linie das physisch-leibliche Element im Menschen berücksichtigt.",
+            "translationText": "12章'\n德语：\nEs dürfte meine Schilderung in den letzten Tagen auf Sie den Eindruck gemacht haben, daß gerade die auf anthroposophische Menschenerkenntnis begründete Erziehungs- und Unterrichtskunst in allererster Linie das physisch-leibliche Element im Menschen berücksichtigt."
+          },
+          {
+            "id": "local-1775898074493-ch1-b1",
+            "blockIndex": 1,
+            "blockType": "paragraph",
+            "originalText": "中文：\n我这几天的阐述，或许会让您产生这样一种印象：正是建立在人智学人类认识基础上的教育与教学艺术，首先关注的是人身上的物质—身体层面。",
+            "translationText": "中文：\n我这几天的阐述，或许会让您产生这样一种印象：正是建立在人智学人类认识基础上的教育与教学艺术，首先关注的是人身上的物质—身体层面。"
+          },
+          {
+            "id": "local-1775898074493-ch1-b2",
+            "blockIndex": 2,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b3",
+            "blockIndex": 3,
+            "blockType": "paragraph",
+            "originalText": "德语：\nDenn Sie werden bemerkt haben, daß ich mich bemühte zu zeigen: wie kommen wir mit unserer Erziehungskunst am besten der freien Entfaltung der vom Haupte des Menschen ausgehenden, am eigenen Organismus arbeitenden plastischen Kräfte zu Hilfe?",
+            "translationText": "德语：\nDenn Sie werden bemerkt haben, daß ich mich bemühte zu zeigen: wie kommen wir mit unserer Erziehungskunst am besten der freien Entfaltung der vom Haupte des Menschen ausgehenden, am eigenen Organismus arbeitenden plastischen Kräfte zu Hilfe?"
+          },
+          {
+            "id": "local-1775898074493-ch1-b4",
+            "blockIndex": 4,
+            "blockType": "paragraph",
+            "originalText": "中文：\n因为您可能已经注意到，我一直在努力说明：我们如何通过教育艺术，最有效地帮助那些从人的头部出发、在自身有机体中运作的塑造性力量得到自由发展？",
+            "translationText": "中文：\n因为您可能已经注意到，我一直在努力说明：我们如何通过教育艺术，最有效地帮助那些从人的头部出发、在自身有机体中运作的塑造性力量得到自由发展？"
+          },
+          {
+            "id": "local-1775898074493-ch1-b5",
+            "blockIndex": 5,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b6",
+            "blockIndex": 6,
+            "blockType": "paragraph",
+            "originalText": "继续如下：",
+            "translationText": "继续如下："
+          },
+          {
+            "id": "local-1775898074493-ch1-b7",
+            "blockIndex": 7,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b8",
+            "blockIndex": 8,
+            "blockType": "paragraph",
+            "originalText": "德语：\nWie kommen wir gerade bei der schulmäßigen Erziehung dem Atmungs-, dem Zirkulationssystem entgegen? Wie können wir berücksichtigen, daß sich die Muskelkräfte in der freiesten Weise ausbilden?",
+            "translationText": "德语：\nWie kommen wir gerade bei der schulmäßigen Erziehung dem Atmungs-, dem Zirkulationssystem entgegen? Wie können wir berücksichtigen, daß sich die Muskelkräfte in der freiesten Weise ausbilden?"
+          },
+          {
+            "id": "local-1775898074493-ch1-b9",
+            "blockIndex": 9,
+            "blockType": "paragraph",
+            "originalText": "中文：\n特别是在学校教育中，我们如何顺应呼吸系统和循环系统的发展？我们如何才能顾及到肌肉力量能够以最自由的方式得到形成？",
+            "translationText": "中文：\n特别是在学校教育中，我们如何顺应呼吸系统和循环系统的发展？我们如何才能顾及到肌肉力量能够以最自由的方式得到形成？"
+          },
+          {
+            "id": "local-1775898074493-ch1-b10",
+            "blockIndex": 10,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b11",
+            "blockIndex": 11,
+            "blockType": "paragraph",
+            "originalText": "德语：\nWie können wir berücksichtigen, daß sich in einer richtigen Weise die Muskeln an die Knochen ansetzen und der Mensch so in einer entsprechenden Weise physisch-leiblich in die Außenwelt hineingestellt ist?",
+            "translationText": "德语：\nWie können wir berücksichtigen, daß sich in einer richtigen Weise die Muskeln an die Knochen ansetzen und der Mensch so in einer entsprechenden Weise physisch-leiblich in die Außenwelt hineingestellt ist?"
+          },
+          {
+            "id": "local-1775898074493-ch1-b12",
+            "blockIndex": 12,
+            "blockType": "paragraph",
+            "originalText": "中文：\n我们如何考虑到肌肉能够以正确的方式附着在骨骼上，从而使人以恰当的身体状态被安置于外部世界之中？",
+            "translationText": "中文：\n我们如何考虑到肌肉能够以正确的方式附着在骨骼上，从而使人以恰当的身体状态被安置于外部世界之中？"
+          },
+          {
+            "id": "local-1775898074493-ch1-b13",
+            "blockIndex": 13,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b14",
+            "blockIndex": 14,
+            "blockType": "paragraph",
+            "originalText": "德语：\nEs sieht so aus, als ob alles dasjenige, was von dieser hier besprochenen pädagogischen Kunst ausgeht, insofern es seelische, geistige Maßnahmen sind, so orientiert würde, daß man die möglichst gesunde und normale physisch-leibliche Entwicklung des Menschen zustande bringt.",
+            "translationText": "德语：\nEs sieht so aus, als ob alles dasjenige, was von dieser hier besprochenen pädagogischen Kunst ausgeht, insofern es seelische, geistige Maßnahmen sind, so orientiert würde, daß man die möglichst gesunde und normale physisch-leibliche Entwicklung des Menschen zustande bringt."
+          },
+          {
+            "id": "local-1775898074493-ch1-b15",
+            "blockIndex": 15,
+            "blockType": "paragraph",
+            "originalText": "中文：\n看起来，这里所讨论的教育艺术的一切出发点，即便是心灵与精神层面的措施，也都是以促成尽可能健康、正常的人体发展为导向的。",
+            "translationText": "中文：\n看起来，这里所讨论的教育艺术的一切出发点，即便是心灵与精神层面的措施，也都是以促成尽可能健康、正常的人体发展为导向的。"
+          },
+          {
+            "id": "local-1775898074493-ch1-b16",
+            "blockIndex": 16,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b17",
+            "blockIndex": 17,
+            "blockType": "paragraph",
+            "originalText": "德语：\nUnd das ist auch so. Tatsächlich ist das vollbewußte Ziel desjenigen, was hier als gesunde Pädagogik und Didaktik angesehen werden muß: in der freiesten Weise das Physisch-Leibliche des Menschen zu entwickeln und dem Geistig-Seelischen gewissermaßen die Möglichkeit zu bieten, sich aus sich selbst heraus zu entfalten.",
+            "translationText": "德语：\nUnd das ist auch so. Tatsächlich ist das vollbewußte Ziel desjenigen, was hier als gesunde Pädagogik und Didaktik angesehen werden muß: in der freiesten Weise das Physisch-Leibliche des Menschen zu entwickeln und dem Geistig-Seelischen gewissermaßen die Möglichkeit zu bieten, sich aus sich selbst heraus zu entfalten."
+          },
+          {
+            "id": "local-1775898074493-ch1-b18",
+            "blockIndex": 18,
+            "blockType": "paragraph",
+            "originalText": "中文：\n而事实也正是如此。这里被视为健康的教育学与教学法，其明确的目标在于：以最自由的方式发展人的身体性，同时为精神—心灵提供一种可能，使其能够从自身之中自然展开。",
+            "translationText": "中文：\n而事实也正是如此。这里被视为健康的教育学与教学法，其明确的目标在于：以最自由的方式发展人的身体性，同时为精神—心灵提供一种可能，使其能够从自身之中自然展开。"
+          },
+          {
+            "id": "local-1775898074493-ch1-b19",
+            "blockIndex": 19,
+            "blockType": "paragraph",
+            "originalText": "⸻",
+            "translationText": "⸻"
+          },
+          {
+            "id": "local-1775898074493-ch1-b20",
+            "blockIndex": 20,
+            "blockType": "paragraph",
+            "originalText": "如果你愿意，我可以把最后一段也全部翻译完（这页还剩一小部分）。",
+            "translationText": "如果你愿意，我可以把最后一段也全部翻译完（这页还剩一小部分）。"
+          }
+        ]
+      }
+    ]
   }
 ]
