@@ -535,5 +535,25 @@
         ]
       }
     ]
+  },
+  {
+    "id": "53282344-4837-4355-b7c2-12ea3fbe66ea",
+    "titleZh": "幼儿的尊严",
+    "titleOriginal": "幼儿的尊严",
+    "author": "Michael Glöcke 等",
+    "description": "一本集合实操和哲学深度的育儿灵魂读本。译者：王芬",
+    "coverColor": "#4a6fa5",
+    "publishedYear": 2026,
+    "chapters": [
+      {
+        "id": "5fa94a7b-ce9b-4ac4-ac20-db822d19a7c6",
+        "bookId": "53282344-4837-4355-b7c2-12ea3fbe66ea",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 0,
+        "status": "published",
+        "blocks": []
+      }
+    ]
   }
 ]
