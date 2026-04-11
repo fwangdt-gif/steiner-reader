@@ -337,5 +337,34 @@
         ]
       }
     ]
+  },
+  {
+    "id": "local-1775897182097",
+    "titleOriginal": "ldjlf",
+    "titleZh": "djie ",
+    "author": "ljsdlfjals",
+    "description": "sdjfjowjeoifpowe",
+    "coverColor": "#4a6fa5",
+    "publishedYear": 2026,
+    "category": "人智学",
+    "chapters": [
+      {
+        "id": "local-1775897182097-ch1",
+        "bookId": "local-1775897182097",
+        "title": "djlk ",
+        "titleZh": "djlk ",
+        "orderIndex": 1,
+        "status": "published",
+        "blocks": [
+          {
+            "id": "local-1775897182097-ch1-b0",
+            "blockIndex": 0,
+            "blockType": "paragraph",
+            "originalText": "sljflö",
+            "translationText": "sljflö"
+          }
+        ]
+      }
+    ]
   }
 ]
