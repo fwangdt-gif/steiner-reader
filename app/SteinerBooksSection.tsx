@@ -6,7 +6,7 @@ import { CATEGORIES } from '@/lib/data'
 import { createClient } from '@/lib/supabase/client'
 import type { Book } from '@/lib/data'
 
-export default function SteinerBooksSection({ books }: { books: Book[] }) {
+export default function SteinerBooksSection({ books, query = '' }: { books: Book[]; query?: string }) {
   const supabase = useMemo(() => createClient(), [])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -54,12 +54,14 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
   }, [books])
 
   const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
     return books.filter((b) => {
       if (!showHidden && hiddenIds.has(b.id)) return false
       if (selectedCategory && b.category !== selectedCategory) return false
+      if (q && !b.titleZh.toLowerCase().includes(q) && !b.titleOriginal.toLowerCase().includes(q) && !b.author.toLowerCase().includes(q)) return false
       return true
     })
-  }, [books, selectedCategory, hiddenIds, showHidden])
+  }, [books, selectedCategory, hiddenIds, showHidden, query])
 
   const hiddenCount = hiddenIds.size
 
@@ -67,7 +69,7 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
     <div>
       {/* Section header */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <h2 className="text-sm font-semibold uppercase tracking-widest"
+        <h2 className="text-xs font-medium tracking-[0.14em] uppercase"
           style={{ color: 'var(--text-muted)' }}>
           Steiner 著作
         </h2>

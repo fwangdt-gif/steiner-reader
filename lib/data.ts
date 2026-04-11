@@ -33,7 +33,7 @@ export interface Book {
 }
 
 // ── 固定分类 ──────────────────────────────────────────────────────
-export const CATEGORIES = ['人智学', '教育学', '医学', '优律思美', '灵修'] as const
+export const CATEGORIES = ['人智学', '教育学', '医学', '优律师美', '灵修', '其他'] as const
 export type Category = typeof CATEGORIES[number]
 
 // ── 书目数据 ──────────────────────────────────────────────────────

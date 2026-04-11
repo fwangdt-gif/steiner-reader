@@ -15,12 +15,16 @@ const inputStyle = {
   color: 'var(--text-primary)',
 }
 
+// 分类中除"其他"外的所有固定分类
+const MAIN_CATS = CATEGORIES.filter((c) => c !== '其他') as readonly string[]
+
 interface CloudBook {
   book: Book
   user_id: string
   uploader: string
   isOwn: boolean
   category: string | null
+  updated_at: string
 }
 
 function exportBook(book: Book) {
@@ -34,7 +38,7 @@ function exportBook(book: Book) {
   URL.revokeObjectURL(url)
 }
 
-// ── Edit modal ────────────────────────────────────────────────────
+// ── 编辑弹窗 ─────────────────────────────────────────────────────
 function EditBookModal({ book, onSave, onClose }: {
   book: Book
   onSave: (updated: Book) => void
@@ -73,7 +77,7 @@ function EditBookModal({ book, onSave, onClose }: {
         className="fixed inset-x-4 z-50 rounded-2xl shadow-2xl p-6 max-w-md mx-auto"
         style={{ backgroundColor: 'var(--surface-raised)', top: '50%', transform: 'translateY(-50%)' }}
       >
-        <h2 className="text-base font-semibold mb-4">编辑书名</h2>
+        <h2 className="text-base font-semibold mb-4">编辑书目信息</h2>
         <div className="flex flex-col gap-3 mb-5">
           <div>
             <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>书名 *</label>
@@ -126,7 +130,7 @@ function EditBookModal({ book, onSave, onClose }: {
   )
 }
 
-// ── Book card ─────────────────────────────────────────────────────
+// ── 书籍卡片 ──────────────────────────────────────────────────────
 function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, onPublish, publishing, onMigrate, migrating }: {
   book: Book
   isOwn: boolean
@@ -141,12 +145,14 @@ function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, 
   migrating?: boolean
 }) {
   return (
-    <div className="wc-card rounded-xl border overflow-hidden">
-      <div className="h-1.5" style={{ backgroundColor: book.coverColor }} />
+    <div className="wc-card rounded-2xl border overflow-hidden">
+      <div className="h-1" style={{ backgroundColor: book.coverColor }} />
       <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="text-lg font-semibold leading-snug">{book.titleZh}</h3>
-          <div className="flex items-center gap-1.5 flex-shrink-0 mt-1 flex-wrap justify-end">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h3 className="text-[15px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
+            {book.titleZh}
+          </h3>
+          <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5 flex-wrap justify-end">
             {category && (
               <span className="text-xs px-2 py-0.5 rounded-full"
                 style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-secondary)' }}>
@@ -161,60 +167,63 @@ function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, 
             )}
           </div>
         </div>
+
         <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
-          {book.author} · {book.publishedYear}
+          {book.author}{book.publishedYear ? ` · ${book.publishedYear}` : ''}
         </p>
+
         {book.description && (
           <p className="text-sm mb-3 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             {book.description}
           </p>
         )}
-        <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+
+        <div className="pt-3 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--border)' }}>
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {book.chapters.length} 个章节
           </span>
-          <div className="flex gap-2 flex-wrap justify-end">
+          <div className="flex gap-1.5 flex-wrap justify-end">
             {(isOwn || isAdmin) && (
               <>
                 <button onClick={onEdit}
-                  className="text-sm px-3 py-1.5 rounded-lg border"
+                  className="text-xs px-2.5 py-1.5 rounded-lg border"
                   style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                   编辑书名
                 </button>
                 <Link href={`/local/${book.id}/edit`}
-                  className="text-sm px-3 py-1.5 rounded-lg border"
+                  className="text-xs px-2.5 py-1.5 rounded-lg border"
                   style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
                   编辑内容
                 </Link>
                 {isOwn && onMigrate && (
                   <button onClick={onMigrate} disabled={migrating}
-                    className="text-sm px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                    className="text-xs px-2.5 py-1.5 rounded-lg border disabled:opacity-40"
                     style={{ borderColor: '#6a8f6a', color: '#6a8f6a' }}>
                     {migrating ? '迁移中…' : '存入云端'}
                   </button>
                 )}
                 {isOwn && (
                   <button onClick={onPublish} disabled={publishing}
-                    className="text-sm px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                    className="text-xs px-2.5 py-1.5 rounded-lg border disabled:opacity-40"
                     style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}>
                     {publishing ? '发布中…' : '发布到书库'}
                   </button>
                 )}
                 <button onClick={onDelete}
-                  className="text-sm px-3 py-1.5 rounded-lg border"
+                  className="text-xs px-2.5 py-1.5 rounded-lg border"
                   style={{ borderColor: '#dc2626', color: '#dc2626' }}>
                   删除
                 </button>
               </>
             )}
             <Link href={`/local/${book.id}`}
-              className="text-sm px-3 py-1.5 rounded-lg border"
+              className="text-xs px-2.5 py-1.5 rounded-lg border"
               style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
               目录
             </Link>
             {book.chapters[0] && (
               <Link href={`/local/${book.id}/chapters/${book.chapters[0].id}`}
-                className="text-sm px-3 py-1.5 rounded-lg text-white"
+                className="text-xs px-2.5 py-1.5 rounded-lg text-white"
                 style={{ backgroundColor: 'var(--accent)' }}>
                 开始阅读
               </Link>
@@ -226,89 +235,49 @@ function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, 
   )
 }
 
-// ── Section header ────────────────────────────────────────────────
-function SectionHeader({ title, badge }: { title: string; badge?: string }) {
-  return (
-    <div className="flex items-center gap-2 mb-4">
-      <h2 className="text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-        {title}
-      </h2>
-      {badge && (
-        <span className="text-xs px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
-          {badge}
-        </span>
-      )}
-    </div>
-  )
-}
-
-// ── Search + category bar ─────────────────────────────────────────
-function FilterBar({
-  query, onQuery,
-  categories, selected, onCategory,
-}: {
-  query: string
-  onQuery: (q: string) => void
-  categories: string[]
+// ── 分类筛选条 ────────────────────────────────────────────────────
+function CategoryBar({ selected, onSelect }: {
   selected: string | null
-  onCategory: (c: string | null) => void
+  onSelect: (c: string | null) => void
 }) {
   return (
-    <div className="mb-6">
-      {/* Search input */}
-      <div className="relative mb-3">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--text-muted)' }}>
-          🔍
-        </span>
-        <input
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          placeholder="搜索书名或作者…"
-          className="w-full pl-9 pr-4 py-2 rounded-xl border text-sm outline-none"
-          style={inputStyle}
-        />
-        {query && (
+    <div className="flex flex-wrap gap-2 mb-6">
+      {CATEGORIES.map((cat) => {
+        const active = selected === cat
+        return (
           <button
-            onClick={() => onQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
-            style={{ color: 'var(--text-muted)' }}
-          >✕</button>
-        )}
-      </div>
-
-      {/* Category chips */}
-      {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => onCategory(null)}
-            className="text-xs px-3 py-1 rounded-full border transition-colors"
+            key={cat}
+            onClick={() => onSelect(active ? null : cat)}
+            className="text-xs px-3.5 py-1 rounded-full border transition-colors"
             style={{
-              borderColor: selected === null ? 'var(--accent)' : 'var(--border)',
-              backgroundColor: selected === null ? 'var(--accent-light)' : 'transparent',
-              color: selected === null ? 'var(--accent)' : 'var(--text-secondary)',
+              borderColor: active ? 'var(--accent)' : 'var(--border)',
+              backgroundColor: active ? 'var(--accent-light)' : 'transparent',
+              color: active ? 'var(--accent)' : 'var(--text-secondary)',
+              letterSpacing: '0.02em',
             }}
-          >全部</button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => onCategory(selected === cat ? null : cat)}
-              className="text-xs px-3 py-1 rounded-full border transition-colors"
-              style={{
-                borderColor: selected === cat ? 'var(--accent)' : 'var(--border)',
-                backgroundColor: selected === cat ? 'var(--accent-light)' : 'transparent',
-                color: selected === cat ? 'var(--accent)' : 'var(--text-secondary)',
-              }}
-            >{cat}</button>
-          ))}
-        </div>
-      )}
+          >
+            {cat}
+          </button>
+        )
+      })}
     </div>
   )
 }
 
-// ── Main component ────────────────────────────────────────────────
-export default function LocalBooks() {
+// ── 区块标题 ──────────────────────────────────────────────────────
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2
+      className="text-xs font-medium tracking-[0.14em] uppercase"
+      style={{ color: 'var(--text-muted)' }}
+    >
+      {children}
+    </h2>
+  )
+}
+
+// ── 主组件 ────────────────────────────────────────────────────────
+export default function LocalBooks({ query = '' }: { query?: string }) {
   const supabase = useMemo(() => createClient(), [])
   const [localBooks, setLocalBooks] = useState<Book[]>([])
   const [myCloudBooks, setMyCloudBooks] = useState<CloudBook[]>([])
@@ -321,39 +290,37 @@ export default function LocalBooks() {
   const [migrating, setMigrating] = useState<string | null>(null)
   const [editingBook, setEditingBook] = useState<Book | null>(null)
 
-  // ── Filter state ──────────────────────────────────────────────────
-  const [query, setQuery] = useState('')
+  // 共享书库的状态
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [sharedExpanded, setSharedExpanded] = useState(false)
 
-  // ── Derived: all categories from cloud books ───────────────────────
-  const allCategories = useMemo(() => {
-    const used = new Set([...myCloudBooks, ...othersBooks].map(({ category }) => category).filter(Boolean))
-    return CATEGORIES.filter((c) => used.has(c))
-  }, [myCloudBooks, othersBooks])
-
-  // ── Filter helpers ────────────────────────────────────────────────
+  // ── 过滤逻辑 ──────────────────────────────────────────────────
   const matchesQuery = (title: string, author: string) => {
-    if (!query) return true
+    if (!query.trim()) return true
     const q = query.toLowerCase()
     return title.toLowerCase().includes(q) || author.toLowerCase().includes(q)
   }
 
   const matchesCategory = (category: string | null) => {
     if (!selectedCategory) return true
+    // "其他"：匹配没有分类或分类不在主分类列表里的书
+    if (selectedCategory === '其他') {
+      return !category || !MAIN_CATS.includes(category)
+    }
     return category === selectedCategory
   }
 
   const filteredLocal = localBooks.filter((b) => matchesQuery(b.titleZh, b.author))
-
-  const filteredMine = myCloudBooks.filter(({ book, category }) =>
-    matchesQuery(book.titleZh, book.author) && matchesCategory(category)
-  )
-
+  const filteredMine = myCloudBooks.filter(({ book }) => matchesQuery(book.titleZh, book.author))
   const filteredOthers = othersBooks.filter(({ book, category }) =>
     matchesQuery(book.titleZh, book.author) && matchesCategory(category)
   )
 
-  // ── Handlers ──────────────────────────────────────────────────────
+  // 共享书库：折叠时只显示前 3 本（Supabase 已按 updated_at DESC 排序）
+  const sharedVisible = sharedExpanded ? filteredOthers : filteredOthers.slice(0, 3)
+  const hasMore = filteredOthers.length > 3
+
+  // ── 操作处理器 ────────────────────────────────────────────────
   const handlePublish = async (book: Book) => {
     if (!confirm(`确认将《${book.titleZh}》发布到公共书库？\n发布后所有人可见，且会触发 Vercel 重新部署。`)) return
     setPublishing(book.id)
@@ -365,7 +332,7 @@ export default function LocalBooks() {
       })
       const data = await res.json()
       if (!res.ok) alert(`发布失败：${data.error}`)
-      else alert(`《${book.titleZh}》已发布到公共书库，Vercel 将自动重新部署。`)
+      else alert(`《${book.titleZh}》已发布到公共书库。`)
     } catch {
       alert('网络错误，请稍后重试')
     } finally {
@@ -381,21 +348,20 @@ export default function LocalBooks() {
 
   const handleDeleteCloud = async (bookId: string) => {
     if (!confirm('确认删除这本云端书籍？章节内容也会一并删除，且不可撤销。')) return
-    // Delete chapters first, then the book
     await supabase.from('chapters').delete().eq('book_id', bookId)
     await supabase.from('local_books').delete().eq('id', bookId)
     setMyCloudBooks((prev) => prev.filter(({ book }) => book.id !== bookId))
+    setOthersBooks((prev) => prev.filter(({ book }) => book.id !== bookId))
   }
 
   const handleMigrateToCloud = async (book: Book) => {
     if (!isLoggedIn) { alert('请先登录后再存入云端'); return }
-    if (!confirm(`将《${book.titleZh}》存入云端？\n迁移后将从本地删除，可在「我的图书管理」中管理。`)) return
+    if (!confirm(`将《${book.titleZh}》存入云端？\n迁移后将从本地删除。`)) return
     setMigrating(book.id)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { alert('请先登录'); return }
 
-      // 1. Create local_books entry in Supabase
       const { data: newBook, error: bookErr } = await supabase
         .from('local_books')
         .insert({
@@ -409,49 +375,37 @@ export default function LocalBooks() {
         .select('id')
         .single()
 
-      if (bookErr || !newBook) {
-        alert(`迁移失败：${bookErr?.message ?? '未知错误'}`)
-        return
-      }
+      if (bookErr || !newBook) { alert(`迁移失败：${bookErr?.message ?? '未知错误'}`); return }
       const newId = newBook.id
 
-      // 2. Check if chapters already exist in Supabase under old localStorage ID
       const { data: existingChapters } = await supabase
-        .from('chapters')
-        .select('id')
-        .eq('book_id', book.id)
+        .from('chapters').select('id').eq('book_id', book.id)
 
       if (existingChapters && existingChapters.length > 0) {
-        // Move existing Supabase chapters to new book ID
         await supabase.from('chapters').update({ book_id: newId }).eq('book_id', book.id)
       } else if (book.chapters.length > 0) {
-        // Insert chapters from localStorage data
-        const toInsert = book.chapters.map((ch, idx) => ({
-          book_id: newId,
-          title: ch.titleZh || ch.title || `第 ${idx + 1} 章`,
-          content: JSON.stringify(ch.blocks ?? []),
-          order_index: ch.orderIndex ?? idx,
-        }))
-        await supabase.from('chapters').insert(toInsert)
+        await supabase.from('chapters').insert(
+          book.chapters.map((ch, idx) => ({
+            book_id: newId,
+            title: ch.titleZh || ch.title || `第 ${idx + 1} 章`,
+            content: JSON.stringify(ch.blocks ?? []),
+            order_index: ch.orderIndex ?? idx,
+          }))
+        )
       }
 
-      // 3. Remove from localStorage and refresh
       deleteLocalBook(book.id)
       setLocalBooks(getLocalBooks())
 
-      // 4. Add to cloud list
       const { data: profile } = await supabase
         .from('profiles').select('display_name').eq('id', user.id).single()
       const cloudBook: CloudBook = {
-        book: {
-          ...book,
-          id: newId,
-          chapters: book.chapters.map((ch) => ({ ...ch, bookId: newId })),
-        },
+        book: { ...book, id: newId, chapters: book.chapters.map((ch) => ({ ...ch, bookId: newId })) },
         user_id: user.id,
         uploader: profile?.display_name ?? '我',
         isOwn: true,
         category: book.category ?? null,
+        updated_at: new Date().toISOString(),
       }
       setMyCloudBooks((prev) => [cloudBook, ...prev])
       alert(`《${book.titleZh}》已成功存入云端！`)
@@ -466,7 +420,6 @@ export default function LocalBooks() {
   const handleSaveEdit = async (updated: Book) => {
     saveLocalBook(updated)
     setLocalBooks(getLocalBooks())
-    // Sync to Supabase if this is a cloud book
     const isCloud = [...myCloudBooks, ...othersBooks].some(({ book }) => book.id === updated.id)
     if (isCloud) {
       await supabase.from('local_books').update({
@@ -476,8 +429,10 @@ export default function LocalBooks() {
         category: updated.category ?? null,
         updated_at: new Date().toISOString(),
       }).eq('id', updated.id)
-      // Refresh cloud list
       setMyCloudBooks((prev) => prev.map(({ book, ...rest }) =>
+        book.id === updated.id ? { ...rest, book: updated, category: updated.category ?? null } : { ...rest, book }
+      ))
+      setOthersBooks((prev) => prev.map(({ book, ...rest }) =>
         book.id === updated.id ? { ...rest, book: updated, category: updated.category ?? null } : { ...rest, book }
       ))
     }
@@ -509,6 +464,7 @@ export default function LocalBooks() {
     reader.readAsText(file)
   }
 
+  // ── 加载数据 ──────────────────────────────────────────────────
   useEffect(() => {
     setLocalBooks(getLocalBooks())
 
@@ -523,10 +479,10 @@ export default function LocalBooks() {
 
       const { data } = await supabase
         .from('local_books')
-        .select('id, title, author, description, category, user_id, profiles(display_name), chapters(id, order_index)')
+        .select('id, title, author, description, category, user_id, updated_at, profiles(display_name), chapters(id, order_index)')
         .order('updated_at', { ascending: false })
 
-      if (!data) return
+      if (!data) { setCloudLoaded(true); return }
 
       const mine: CloudBook[] = []
       const others: CloudBook[] = []
@@ -536,7 +492,6 @@ export default function LocalBooks() {
         const profileArr = row.profiles as any
         const displayName: string =
           (Array.isArray(profileArr) ? profileArr[0]?.display_name : profileArr?.display_name) ?? '未知用户'
-
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const chapterArr: any[] = Array.isArray(row.chapters) ? row.chapters : []
         const book: Book = {
@@ -559,13 +514,13 @@ export default function LocalBooks() {
               blocks: [],
             })),
         }
-
         const entry: CloudBook = {
           book,
           user_id: row.user_id,
           uploader: displayName,
           isOwn: row.user_id === user.id,
           category: row.category ?? null,
+          updated_at: row.updated_at ?? '',
         }
         if (entry.isOwn) mine.push(entry)
         else others.push(entry)
@@ -578,40 +533,30 @@ export default function LocalBooks() {
     loadCloud()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── 渲染 ──────────────────────────────────────────────────────
   return (
-    <div className="mb-8">
+    <div>
       <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
 
-      {/* ── Search + category filter ── */}
-      <FilterBar
-        query={query}
-        onQuery={setQuery}
-        categories={allCategories}
-        selected={selectedCategory}
-        onCategory={setSelectedCategory}
-      />
-
-      {/* ══ 我的书籍 ══════════════════════════════════════════════ */}
-      <section>
-        {/* Section header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1 h-4 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            我的书籍
-          </h2>
-          <span className="text-xs px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
-            {localBooks.length + myCloudBooks.length} 本
-          </span>
-          <div className="flex items-center gap-2 ml-auto">
+      {/* ════════════════ 我的书库 ════════════════ */}
+      <section className="mb-14">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-baseline gap-2.5">
+            <SectionLabel>我的书库</SectionLabel>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {localBooks.length + myCloudBooks.length} 本
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
             <Link
               href="/my-books/new"
-              className="text-xs px-3 py-1 rounded-lg border"
+              className="text-xs px-3 py-1.5 rounded-lg border transition-colors"
               style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
               + 新建
             </Link>
-            <button onClick={() => fileInputRef.current?.click()}
-              className="text-xs px-3 py-1 rounded-lg border"
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="text-xs px-3 py-1.5 rounded-lg border transition-colors"
               style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
               导入 JSON
             </button>
@@ -619,7 +564,7 @@ export default function LocalBooks() {
         </div>
 
         <div className="flex flex-col gap-4">
-          {/* Local books */}
+          {/* 本地书籍 */}
           {filteredLocal.map((book) => (
             <BookCard
               key={book.id}
@@ -634,7 +579,7 @@ export default function LocalBooks() {
             />
           ))}
 
-          {/* My cloud books */}
+          {/* 我的云端书籍 */}
           {filteredMine.map(({ book, category }) => (
             <BookCard
               key={book.id}
@@ -649,62 +594,86 @@ export default function LocalBooks() {
             />
           ))}
 
-          {/* Empty state */}
+          {/* 空状态 */}
           {filteredLocal.length === 0 && filteredMine.length === 0 && (
-            <p className="text-sm py-3" style={{ color: 'var(--text-muted)' }}>
-              {query ? '无匹配结果' : '还没有书籍，点击上方「手动录入」或「上传文件」添加'}
-            </p>
+            <div className="py-6 text-center">
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                {query ? '无匹配结果' : '还没有书籍，点击「+ 新建」或「导入 JSON」'}
+              </p>
+            </div>
           )}
         </div>
       </section>
 
-      {/* ══ 共享书库 ══════════════════════════════════════════════ */}
-      <section className="mt-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-1 h-4 rounded-full" style={{ backgroundColor: '#6a8f6a' }} />
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            共享书库
-          </h2>
-          {othersBooks.length > 0 && (
-            <span className="text-xs px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-secondary)' }}>
-              {othersBooks.length} 本
-            </span>
-          )}
+      {/* ════════════════ 共享书库 ════════════════ */}
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-baseline gap-2.5">
+            <SectionLabel>共享书库</SectionLabel>
+            {othersBooks.length > 0 && (
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {othersBooks.length} 本
+              </span>
+            )}
+          </div>
         </div>
 
+        {/* 分类导览 */}
+        <CategoryBar selected={selectedCategory} onSelect={setSelectedCategory} />
+
+        {/* 内容区 */}
         {!cloudLoaded ? (
-          <p className="text-sm py-3" style={{ color: 'var(--text-muted)' }}>加载中…</p>
+          <p className="text-sm py-4" style={{ color: 'var(--text-muted)' }}>加载中…</p>
         ) : !isLoggedIn ? (
-          <div className="wc-card rounded-xl border p-5 text-center">
-            <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+          <div className="wc-card rounded-2xl border p-6 text-center">
+            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
               登录后可查看其他成员上传的书籍
             </p>
-            <a href="/login"
-              className="text-sm px-4 py-1.5 rounded-lg text-white inline-block"
+            <a
+              href="/login"
+              className="text-sm px-5 py-2 rounded-lg text-white inline-block"
               style={{ backgroundColor: 'var(--accent)' }}>
               登录
             </a>
           </div>
         ) : filteredOthers.length === 0 ? (
-          <p className="text-sm py-3" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-sm py-4" style={{ color: 'var(--text-muted)' }}>
             {query || selectedCategory ? '无匹配结果' : '暂无其他成员上传的书籍'}
           </p>
         ) : (
-          <div className="flex flex-col gap-4">
-            {filteredOthers.map(({ book, uploader, category }) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                isOwn={false}
-                isAdmin={isAdmin}
-                uploader={uploader}
-                category={category}
-                onEdit={isAdmin ? () => setEditingBook(book) : undefined}
-                onDelete={isAdmin ? () => handleDeleteCloud(book.id) : undefined}
-              />
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col gap-4">
+              {sharedVisible.map(({ book, uploader, category }) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  isOwn={false}
+                  isAdmin={isAdmin}
+                  uploader={uploader}
+                  category={category}
+                  onEdit={isAdmin ? () => setEditingBook(book) : undefined}
+                  onDelete={isAdmin ? () => handleDeleteCloud(book.id) : undefined}
+                />
+              ))}
+            </div>
+
+            {/* 展开 / 收起 */}
+            {hasMore && (
+              <button
+                onClick={() => setSharedExpanded((v) => !v)}
+                className="mt-5 w-full py-2.5 rounded-xl border text-sm transition-colors"
+                style={{
+                  borderColor: 'var(--border)',
+                  color: 'var(--text-secondary)',
+                  backgroundColor: 'transparent',
+                }}
+              >
+                {sharedExpanded
+                  ? '收起'
+                  : `展开全部 · 共 ${filteredOthers.length} 本`}
+              </button>
+            )}
+          </>
         )}
       </section>
 
