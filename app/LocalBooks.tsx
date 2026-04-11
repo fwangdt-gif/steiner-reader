@@ -477,23 +477,41 @@ export default function LocalBooks({ query = '' }: { query?: string }) {
         .from('profiles').select('role').eq('id', user.id).single()
       if (profile?.role === 'admin') setIsAdmin(true)
 
-      const { data } = await supabase
+      const { data: booksData } = await supabase
         .from('local_books')
-        .select('id, title, author, description, category, user_id, updated_at, profiles(display_name), chapters(id, order_index)')
+        .select('id, title, author, description, category, user_id, updated_at')
         .order('updated_at', { ascending: false })
 
-      if (!data) { setCloudLoaded(true); return }
+      if (!booksData) { setCloudLoaded(true); return }
+
+      // Fetch display names separately
+      const userIds = [...new Set(booksData.map((r) => r.user_id).filter(Boolean))]
+      const nameMap: Record<string, string> = {}
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles').select('id, display_name').in('id', userIds)
+        for (const p of profiles ?? []) {
+          nameMap[p.id] = p.display_name ?? '未知用户'
+        }
+      }
+
+      // Fetch chapter stubs separately (book_id is text, no FK needed)
+      const bookIds = booksData.map((r) => r.id)
+      const chapterMap: Record<string, Array<{ id: string; order_index: number }>> = {}
+      if (bookIds.length > 0) {
+        const { data: chapterRows } = await supabase
+          .from('chapters').select('id, book_id, order_index').in('book_id', bookIds)
+        for (const ch of chapterRows ?? []) {
+          if (!chapterMap[ch.book_id]) chapterMap[ch.book_id] = []
+          chapterMap[ch.book_id].push({ id: ch.id, order_index: ch.order_index })
+        }
+      }
 
       const mine: CloudBook[] = []
       const others: CloudBook[] = []
 
-      for (const row of data) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const profileArr = row.profiles as any
-        const displayName: string =
-          (Array.isArray(profileArr) ? profileArr[0]?.display_name : profileArr?.display_name) ?? '未知用户'
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const chapterArr: any[] = Array.isArray(row.chapters) ? row.chapters : []
+      for (const row of booksData) {
+        const chapterArr = (chapterMap[row.id] ?? []).sort((a, b) => a.order_index - b.order_index)
         const book: Book = {
           id: row.id,
           titleZh: row.title,
@@ -502,22 +520,20 @@ export default function LocalBooks({ query = '' }: { query?: string }) {
           description: row.description ?? '',
           coverColor: '#4a6fa5',
           publishedYear: new Date().getFullYear(),
-          chapters: chapterArr
-            .sort((a, b) => a.order_index - b.order_index)
-            .map((ch) => ({
-              id: ch.id,
-              bookId: row.id,
-              title: '',
-              titleZh: '',
-              orderIndex: ch.order_index,
-              status: 'published' as const,
-              blocks: [],
-            })),
+          chapters: chapterArr.map((ch) => ({
+            id: ch.id,
+            bookId: row.id,
+            title: '',
+            titleZh: '',
+            orderIndex: ch.order_index,
+            status: 'published' as const,
+            blocks: [],
+          })),
         }
         const entry: CloudBook = {
           book,
           user_id: row.user_id,
-          uploader: displayName,
+          uploader: nameMap[row.user_id] ?? '未知用户',
           isOwn: row.user_id === user.id,
           category: row.category ?? null,
           updated_at: row.updated_at ?? '',
