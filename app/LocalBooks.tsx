@@ -301,6 +301,8 @@ export default function LocalBooks() {
   const [localBooks, setLocalBooks] = useState<Book[]>([])
   const [myCloudBooks, setMyCloudBooks] = useState<CloudBook[]>([])
   const [othersBooks, setOthersBooks] = useState<CloudBook[]>([])
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [cloudLoaded, setCloudLoaded] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [publishing, setPublishing] = useState<string | null>(null)
   const [editingBook, setEditingBook] = useState<Book | null>(null)
@@ -422,7 +424,8 @@ export default function LocalBooks() {
 
     async function loadCloud() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { setCloudLoaded(true); return }
+      setIsLoggedIn(true)
 
       const { data } = await supabase
         .from('local_books')
@@ -476,6 +479,7 @@ export default function LocalBooks() {
 
       setMyCloudBooks(mine)
       setOthersBooks(others)
+      setCloudLoaded(true)
     }
     loadCloud()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -493,72 +497,98 @@ export default function LocalBooks() {
         onCategory={setSelectedCategory}
       />
 
-      {/* ── 本地书籍 ── */}
-      <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-          本地书籍
-        </h2>
-        <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-muted)' }}>
-          仅在本设备可见
-        </span>
-        <button onClick={() => fileInputRef.current?.click()}
-          className="ml-auto text-xs px-3 py-1 rounded-lg border"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-          导入 JSON
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        {filteredLocal.length === 0 && (
-          <p className="text-sm py-2" style={{ color: 'var(--text-muted)' }}>
-            {query ? '无匹配结果' : '暂无本地书籍，可上传或导入 JSON'}
-          </p>
-        )}
-        {filteredLocal.map((book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            isOwn={true}
-            onEdit={() => setEditingBook(book)}
-            onDelete={() => handleDeleteLocal(book.id)}
-            onPublish={() => handlePublish(book)}
-            publishing={publishing === book.id}
-          />
-        ))}
-      </div>
-
-      {/* ── 我的云端书籍 ── */}
-      {myCloudBooks.length > 0 && (
-        <div className="mt-10">
-          <SectionHeader title="我的云端书籍" badge="云端同步" />
-          <div className="flex flex-col gap-4">
-            {filteredMine.length === 0 && (
-              <p className="text-sm py-2" style={{ color: 'var(--text-muted)' }}>无匹配结果</p>
-            )}
-            {filteredMine.map(({ book, category }) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                isOwn={true}
-                category={category}
-                onEdit={() => setEditingBook(book)}
-                onDelete={() => handleDeleteCloud(book.id)}
-                onPublish={() => handlePublish(book)}
-                publishing={publishing === book.id}
-              />
-            ))}
+      {/* ══ 我的书籍 ══════════════════════════════════════════════ */}
+      <section>
+        {/* Section header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-4 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            我的书籍
+          </h2>
+          <span className="text-xs px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
+            {localBooks.length + myCloudBooks.length} 本
+          </span>
+          <div className="flex items-center gap-2 ml-auto">
+            <button onClick={() => fileInputRef.current?.click()}
+              className="text-xs px-3 py-1 rounded-lg border"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+              导入 JSON
+            </button>
           </div>
         </div>
-      )}
 
-      {/* ── 共享书库 ── */}
-      {othersBooks.length > 0 && (
-        <div className="mt-10">
-          <SectionHeader title="共享书库" badge="他人上传" />
+        <div className="flex flex-col gap-4">
+          {/* Local books */}
+          {filteredLocal.map((book) => (
+            <BookCard
+              key={book.id}
+              book={book}
+              isOwn={true}
+              onEdit={() => setEditingBook(book)}
+              onDelete={() => handleDeleteLocal(book.id)}
+              onPublish={() => handlePublish(book)}
+              publishing={publishing === book.id}
+            />
+          ))}
+
+          {/* My cloud books */}
+          {filteredMine.map(({ book, category }) => (
+            <BookCard
+              key={book.id}
+              book={book}
+              isOwn={true}
+              category={category}
+              onEdit={() => setEditingBook(book)}
+              onDelete={() => handleDeleteCloud(book.id)}
+              onPublish={() => handlePublish(book)}
+              publishing={publishing === book.id}
+            />
+          ))}
+
+          {/* Empty state */}
+          {filteredLocal.length === 0 && filteredMine.length === 0 && (
+            <p className="text-sm py-3" style={{ color: 'var(--text-muted)' }}>
+              {query ? '无匹配结果' : '还没有书籍，点击上方「手动录入」或「上传文件」添加'}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ══ 共享书库 ══════════════════════════════════════════════ */}
+      <section className="mt-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-4 rounded-full" style={{ backgroundColor: '#6a8f6a' }} />
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            共享书库
+          </h2>
+          {othersBooks.length > 0 && (
+            <span className="text-xs px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-secondary)' }}>
+              {othersBooks.length} 本
+            </span>
+          )}
+        </div>
+
+        {!cloudLoaded ? (
+          <p className="text-sm py-3" style={{ color: 'var(--text-muted)' }}>加载中…</p>
+        ) : !isLoggedIn ? (
+          <div className="wc-card rounded-xl border p-5 text-center">
+            <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+              登录后可查看其他成员上传的书籍
+            </p>
+            <a href="/login"
+              className="text-sm px-4 py-1.5 rounded-lg text-white inline-block"
+              style={{ backgroundColor: 'var(--accent)' }}>
+              登录
+            </a>
+          </div>
+        ) : filteredOthers.length === 0 ? (
+          <p className="text-sm py-3" style={{ color: 'var(--text-muted)' }}>
+            {query || selectedCategory ? '无匹配结果' : '暂无其他成员上传的书籍'}
+          </p>
+        ) : (
           <div className="flex flex-col gap-4">
-            {filteredOthers.length === 0 && (
-              <p className="text-sm py-2" style={{ color: 'var(--text-muted)' }}>无匹配结果</p>
-            )}
             {filteredOthers.map(({ book, uploader, category }) => (
               <BookCard
                 key={book.id}
@@ -569,8 +599,8 @@ export default function LocalBooks() {
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
       {editingBook && (
         <EditBookModal
