@@ -16,11 +16,19 @@ export default function LibraryPage() {
       {/* ── 顶部：站名 + 搜索 + 用户导航 ───────────────────────── */}
       <header className="wc-header sticky top-0 z-10 border-b">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center gap-4">
-          <span
-            className="text-[15px] font-semibold tracking-tight flex-shrink-0"
-            style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
-          >
-            Steiner 共读平台
+          <span className="flex-shrink-0 leading-none">
+            <span
+              className="text-xl font-bold tracking-tight"
+              style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+            >
+              Steiner
+            </span>
+            <span
+              className="text-sm font-medium ml-1.5"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              共读平台
+            </span>
           </span>
 
           {/* 搜索栏 */}
