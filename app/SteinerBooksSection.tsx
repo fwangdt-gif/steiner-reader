@@ -1,13 +1,52 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { CATEGORIES } from '@/lib/data'
+import { createClient } from '@/lib/supabase/client'
 import type { Book } from '@/lib/data'
 
-// ── Main component ────────────────────────────────────────────────
 export default function SteinerBooksSection({ books }: { books: Book[] }) {
+  const supabase = useMemo(() => createClient(), [])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
+  const [showHidden, setShowHidden] = useState(false)
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles').select('role').eq('id', user.id).single()
+      if (profile?.role === 'admin') setIsAdmin(true)
+
+      const { data: overrides } = await supabase
+        .from('book_overrides').select('book_id, hidden')
+      if (overrides) {
+        setHiddenIds(new Set(overrides.filter((r) => r.hidden).map((r) => r.book_id)))
+      }
+    }
+    init()
+  }, [supabase])
+
+  const handleToggleHidden = async (bookId: string) => {
+    setToggling(bookId)
+    const nowHidden = !hiddenIds.has(bookId)
+    // Upsert into book_overrides
+    await supabase.from('book_overrides').upsert(
+      { book_id: bookId, hidden: nowHidden, updated_at: new Date().toISOString() },
+      { onConflict: 'book_id' }
+    )
+    setHiddenIds((prev) => {
+      const next = new Set(prev)
+      if (nowHidden) next.add(bookId)
+      else next.delete(bookId)
+      return next
+    })
+    setToggling(null)
+  }
 
   const categories = useMemo(() => {
     const used = new Set(books.map((b) => b.category).filter(Boolean))
@@ -15,26 +54,39 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
   }, [books])
 
   const filtered = useMemo(() => {
-    return books.filter((b) =>
-      !selectedCategory || b.category === selectedCategory
-    )
-  }, [books, selectedCategory])
+    return books.filter((b) => {
+      if (!showHidden && hiddenIds.has(b.id)) return false
+      if (selectedCategory && b.category !== selectedCategory) return false
+      return true
+    })
+  }, [books, selectedCategory, hiddenIds, showHidden])
+
+  const hiddenCount = hiddenIds.size
 
   return (
     <div>
       {/* Section header */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         <h2 className="text-sm font-semibold uppercase tracking-widest"
           style={{ color: 'var(--text-muted)' }}>
           Steiner 著作
         </h2>
         <span className="text-xs px-2 py-0.5 rounded-full"
           style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
-          {books.length} 部
+          {books.length - (showHidden ? 0 : hiddenCount)} 部
         </span>
+        {isAdmin && hiddenCount > 0 && (
+          <button
+            onClick={() => setShowHidden((v) => !v)}
+            className="ml-auto text-xs px-2.5 py-0.5 rounded-full border"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+          >
+            {showHidden ? `隐藏已隐藏书籍 (${hiddenCount})` : `显示已隐藏书籍 (${hiddenCount})`}
+          </button>
+        )}
       </div>
 
-      {/* Category chips only — no search bar (too few books) */}
+      {/* Category chips */}
       {categories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-5">
           <button
@@ -71,9 +123,14 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
         {filtered.map((book) => {
           const publishedChapters = book.chapters.filter((c) => c.status === 'published')
           const firstChapter = publishedChapters[0]
+          const isHidden = hiddenIds.has(book.id)
 
           return (
-            <div key={book.id} className="wc-card rounded-xl border overflow-hidden">
+            <div
+              key={book.id}
+              className="wc-card rounded-xl border overflow-hidden"
+              style={isHidden ? { opacity: 0.5 } : undefined}
+            >
               <div className="h-1.5" style={{ backgroundColor: book.coverColor }} />
               <div className="p-5">
                 <div className="flex items-start justify-between gap-2 mb-0.5">
@@ -81,12 +138,20 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
                     style={{ color: 'var(--text-muted)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
                     {book.titleOriginal}
                   </p>
-                  {book.category && (
-                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-secondary)' }}>
-                      {book.category}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {isHidden && (
+                      <span className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-muted)' }}>
+                        已隐藏
+                      </span>
+                    )}
+                    {book.category && (
+                      <span className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-secondary)' }}>
+                        {book.category}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <h2 className="text-lg font-semibold mb-1 leading-snug">{book.titleZh}</h2>
                 <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
@@ -103,7 +168,7 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
                   {book.description}
                 </p>
 
-                <div className="mt-4 pt-4 border-t flex items-center justify-between"
+                <div className="mt-4 pt-4 border-t flex items-center justify-between gap-2"
                   style={{ borderColor: 'var(--border)' }}>
                   <div className="flex items-center gap-2">
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -116,7 +181,20 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleToggleHidden(book.id)}
+                        disabled={toggling === book.id}
+                        className="text-xs px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                        style={{
+                          borderColor: isHidden ? '#6a8f6a' : '#dc2626',
+                          color: isHidden ? '#6a8f6a' : '#dc2626',
+                        }}
+                      >
+                        {toggling === book.id ? '…' : isHidden ? '取消隐藏' : '隐藏'}
+                      </button>
+                    )}
                     <Link href={`/books/${book.id}`}
                       className="text-sm px-3 py-1.5 rounded-lg border"
                       style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
