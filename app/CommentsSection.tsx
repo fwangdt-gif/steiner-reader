@@ -115,7 +115,7 @@ export default function CommentsSection({
             user_id: data.user_id,
             content: data.content,
             created_at: data.created_at,
-            display_name: userName,
+            display_name: '匿名',
           },
         ])
         setText('')
@@ -167,13 +167,13 @@ export default function CommentsSection({
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5"
                 style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}
               >
-                {c.display_name.slice(0, 1).toUpperCase()}
+                匿
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
                   <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-                    {c.display_name}
+                    匿名
                   </span>
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     {formatDate(c.created_at)}
