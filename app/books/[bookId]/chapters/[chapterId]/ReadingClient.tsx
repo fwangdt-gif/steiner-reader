@@ -3,187 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { Chapter, ContentBlock, Book } from '@/lib/data'
-import Annotations from '@/app/Annotations'
 import CommentsSection from '@/app/CommentsSection'
 import NotesPanel from '@/app/NotesPanel'
 
-// ── 笔记类型 ──────────────────────────────────────────────────────
-interface Note {
-  blockId: string
-  text: string
-  createdAt: string
-}
-
-// ── 本地存储工具函数 ──────────────────────────────────────────────
-function loadNotes(chapterId: string): Record<string, Note> {
-  if (typeof window === 'undefined') return {}
-  try {
-    const raw = localStorage.getItem(`notes_${chapterId}`)
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveNotes(chapterId: string, notes: Record<string, Note>) {
-  localStorage.setItem(`notes_${chapterId}`, JSON.stringify(notes))
-}
-
-// ── 底部抽屉组件 ──────────────────────────────────────────────────
-function NoteSheet({
-  block,
-  note,
-  onSave,
-  onClose,
-}: {
-  block: ContentBlock
-  note: Note | null
-  onSave: (blockId: string, text: string) => void
-  onClose: () => void
-}) {
-  const [text, setText] = useState(note?.text ?? '')
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-  useEffect(() => {
-    setTimeout(() => textareaRef.current?.focus(), 100)
-  }, [])
-
-  const handleSave = () => {
-    if (text.trim()) {
-      onSave(block.id, text.trim())
-    }
-    onClose()
-  }
-
-  const handleDelete = () => {
-    onSave(block.id, '')
-    onClose()
-  }
-
-  // 段落预览（取前50字）
-  const preview = block.translationText.slice(0, 50) + (block.translationText.length > 50 ? '…' : '')
-
-  return (
-    <>
-      {/* 遮罩 */}
-      <div
-        className="fixed inset-0 z-40"
-        style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
-        onClick={onClose}
-      />
-
-      {/* 抽屉 */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl shadow-2xl flex flex-col"
-        style={{
-          backgroundColor: 'var(--surface-raised)',
-          maxHeight: '80vh',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
-      >
-        {/* 拖动条 */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--warm-200)' }} />
-        </div>
-
-        {/* 标题栏 */}
-        <div
-          className="flex items-center justify-between px-5 py-3 border-b"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <span className="text-sm font-medium">添加备注</span>
-          <button
-            onClick={onClose}
-            className="text-sm px-2 py-1 rounded"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            取消
-          </button>
-        </div>
-
-        {/* 段落引用 */}
-        <div
-          className="mx-5 mt-4 px-3 py-2 rounded-lg text-sm"
-          style={{
-            backgroundColor: 'var(--warm-100)',
-            color: 'var(--text-secondary)',
-            borderLeft: '3px solid var(--accent)',
-          }}
-        >
-          {preview}
-        </div>
-
-        {/* 输入区 */}
-        <div className="px-5 pt-3 flex-1">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="写下你对这段内容的理解、感想或疑问…"
-            className="w-full rounded-xl p-3 text-sm resize-none outline-none border"
-            style={{
-              minHeight: '120px',
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-              color: 'var(--text-primary)',
-              lineHeight: '1.7',
-            }}
-          />
-        </div>
-
-        {/* 操作按钮 */}
-        <div className="px-5 pt-3 pb-5 flex items-center justify-between">
-          {note ? (
-            <button
-              onClick={handleDelete}
-              className="text-sm px-4 py-2 rounded-lg"
-              style={{ color: '#dc2626', backgroundColor: '#fee2e2' }}
-            >
-              删除备注
-            </button>
-          ) : (
-            <div />
-          )}
-          <button
-            onClick={handleSave}
-            disabled={!text.trim()}
-            className="text-sm px-5 py-2 rounded-lg text-white font-medium disabled:opacity-40"
-            style={{ backgroundColor: 'var(--accent)' }}
-          >
-            保存
-          </button>
-        </div>
-      </div>
-    </>
-  )
-}
-
-// ── 段落组件 ──────────────────────────────────────────────────────
-function BlockItem({
-  block,
-  note,
-  onNoteClick,
-  onAnnotationClick,
-  showAnnotations,
-  bookId,
-  chapterId,
-}: {
-  block: ContentBlock
-  note: Note | null
-  onNoteClick: (block: ContentBlock) => void
-  onAnnotationClick: (block: ContentBlock) => void
-  showAnnotations: boolean
-  bookId: string
-  chapterId: string
-}) {
-  const hasNote = !!note
-
+// ── 段落组件（仅渲染内容，无操作按钮）────────────────────────────
+function BlockItem({ block }: { block: ContentBlock }) {
   if (block.blockType === 'heading') {
     return (
-      <h2
-        className="text-xl font-semibold mt-4 mb-2"
-        style={{ color: 'var(--text-primary)' }}
-      >
+      <h2 className="text-xl font-semibold mt-6 mb-2" style={{ color: 'var(--text-primary)' }}>
         {block.translationText}
       </h2>
     )
@@ -191,10 +18,7 @@ function BlockItem({
 
   if (block.blockType === 'subheading') {
     return (
-      <h3
-        className="text-base font-semibold mt-4 mb-2"
-        style={{ color: 'var(--text-secondary)' }}
-      >
+      <h3 className="text-base font-semibold mt-4 mb-2" style={{ color: 'var(--text-secondary)' }}>
         {block.translationText}
       </h3>
     )
@@ -202,114 +26,58 @@ function BlockItem({
 
   if (block.blockType === 'quote') {
     return (
-      <div className="relative group my-2">
-        <div
-          className="px-4 py-3 rounded-r-lg"
-          style={{
-            borderLeft: '3px solid var(--accent)',
-            backgroundColor: 'var(--accent-light)',
-            color: 'var(--text-primary)',
-          }}
-        >
-          <p className="reading-text italic">{block.translationText}</p>
-
-          {/* 备注指示 */}
-          {hasNote && (
-            <div
-              className="mt-2 pt-2 border-t text-xs"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
-            >
-              📝 {note.text.slice(0, 40)}{note.text.length > 40 ? '…' : ''}
-            </div>
-          )}
-        </div>
-        <button
-          onClick={() => onNoteClick(block)}
-          className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs transition-opacity"
-          style={{
-            backgroundColor: hasNote ? 'var(--accent)' : 'var(--warm-200)',
-            color: hasNote ? 'white' : 'var(--text-muted)',
-            opacity: 0.85,
-          }}
-          title={hasNote ? '编辑备注' : '添加备注'}
-        >
-          {hasNote ? '📝' : '+'}
-        </button>
+      <div
+        className="px-4 py-3 rounded-r-lg my-2"
+        style={{
+          borderLeft: '3px solid var(--accent)',
+          backgroundColor: 'var(--accent-light)',
+          color: 'var(--text-primary)',
+        }}
+      >
+        <p className="reading-text italic">{block.translationText}</p>
       </div>
     )
   }
 
-  // 普通段落
   return (
-    <div className="my-2">
-      <div className="relative group">
-        {/* 左侧备注指示线 */}
-        {hasNote && (
-          <div
-            className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full"
-            style={{ backgroundColor: 'var(--accent)' }}
-          />
-        )}
+    <p className="reading-text my-2" style={{ color: 'var(--text-primary)' }}>
+      {block.translationText}
+    </p>
+  )
+}
 
-        <div className={hasNote ? 'pl-4' : ''}>
-          <p
-            className="reading-text"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {block.translationText}
-          </p>
+// ── 中间 / 底部 评论栏 ────────────────────────────────────────────
+function ActionBar({
+  onNoteClick,
+  commentsRef,
+}: {
+  onNoteClick: () => void
+  commentsRef: React.RefObject<HTMLDivElement | null>
+}) {
+  const scrollToComments = () => {
+    commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
-          {/* 已有备注预览 */}
-          {hasNote && (
-            <div
-              className="mt-2 text-xs px-3 py-2 rounded-lg"
-              style={{
-                backgroundColor: 'var(--warm-100)',
-                color: 'var(--text-secondary)',
-                lineHeight: '1.6',
-              }}
-            >
-              📝 {note.text.slice(0, 60)}{note.text.length > 60 ? '…' : ''}
-            </div>
-          )}
-        </div>
-
-        {/* 操作按钮行 */}
-        <div className="absolute -right-1 top-1 flex flex-col gap-1">
-          <button
-            onClick={() => onNoteClick(block)}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
-            style={{
-              backgroundColor: hasNote ? 'var(--accent)' : 'var(--warm-200)',
-              color: hasNote ? 'white' : 'var(--text-muted)',
-            }}
-            title={hasNote ? '编辑备注' : '添加备注'}
-          >
-            {hasNote ? '📝' : '+'}
-          </button>
-          <button
-            onClick={() => onAnnotationClick(block)}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
-            style={{
-              backgroundColor: showAnnotations ? 'var(--accent)' : 'var(--warm-200)',
-              color: showAnnotations ? 'white' : 'var(--text-muted)',
-            }}
-            title="共读批注"
-          >
-            💬
-          </button>
-        </div>
+  return (
+    <div className="flex items-center gap-3 my-8">
+      <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onNoteClick}
+          className="text-xs px-3.5 py-1.5 rounded-full border transition-colors"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+        >
+          ✏️ 写笔记
+        </button>
+        <button
+          onClick={scrollToComments}
+          className="text-xs px-3.5 py-1.5 rounded-full border transition-colors"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+        >
+          💬 发评论
+        </button>
       </div>
-
-      {/* 共读批注面板 */}
-      {showAnnotations && (
-        <Annotations
-          bookId={bookId}
-          chapterId={chapterId}
-          blockId={block.id}
-          onClose={() => onAnnotationClick(block)}
-        />
-      )}
+      <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
     </div>
   )
 }
@@ -328,14 +96,13 @@ export default function ReadingClient({
   nextChapter: Chapter | null
   basePath?: string
 }) {
-  const [notes, setNotes] = useState<Record<string, Note>>({})
-  const [activeBlock, setActiveBlock] = useState<ContentBlock | null>(null)
-  const [activeAnnotationBlockId, setActiveAnnotationBlockId] = useState<string | null>(null)
+  const [showNotes, setShowNotes] = useState(false)
   const [dark, setDark] = useState(false)
   const [progress, setProgress] = useState(0)
+  const commentsRef = useRef<HTMLDivElement>(null)
 
-  const FONT_SIZES = [15, 17, 20] // 小 / 中 / 大
-  const [sizeIdx, setSizeIdx] = useState(1) // 默认中档
+  const FONT_SIZES = [15, 17, 20]
+  const [sizeIdx, setSizeIdx] = useState(1)
 
   // 初始化主题
   useEffect(() => {
@@ -372,11 +139,6 @@ export default function ReadingClient({
     localStorage.setItem('steiner_theme', next ? 'dark' : 'light')
   }
 
-  // 从 localStorage 加载笔记
-  useEffect(() => {
-    setNotes(loadNotes(chapter.id))
-  }, [chapter.id])
-
   // 滚动进度条
   useEffect(() => {
     const onScroll = () => {
@@ -397,31 +159,18 @@ export default function ReadingClient({
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-      if (e.key === 'ArrowLeft' && prevChapter) {
+      if (e.key === 'ArrowLeft' && prevChapter)
         window.location.href = `${basePath}/${book.id}/chapters/${prevChapter.id}`
-      }
-      if (e.key === 'ArrowRight' && nextChapter) {
+      if (e.key === 'ArrowRight' && nextChapter)
         window.location.href = `${basePath}/${book.id}/chapters/${nextChapter.id}`
-      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [prevChapter, nextChapter, basePath, book.id])
 
-  const handleSaveNote = (blockId: string, text: string) => {
-    setNotes((prev) => {
-      const next = { ...prev }
-      if (text.trim()) {
-        next[blockId] = { blockId, text, createdAt: new Date().toISOString() }
-      } else {
-        delete next[blockId]
-      }
-      saveNotes(chapter.id, next)
-      return next
-    })
-  }
-
-  const noteCount = Object.keys(notes).length
+  // 计算中间位置（块数 > 2 才插入）
+  const blocks = chapter.blocks
+  const midIdx = blocks.length > 2 ? Math.floor(blocks.length / 2) - 1 : -1
 
   return (
     <div className="reading-page">
@@ -452,9 +201,6 @@ export default function ReadingClient({
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {noteCount > 0 && (
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>📝 {noteCount}</span>
-            )}
             {/* 字号调节 */}
             <div className="flex items-center rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
               <button
@@ -462,18 +208,14 @@ export default function ReadingClient({
                 disabled={sizeIdx === 0}
                 className="px-2 py-1 text-xs disabled:opacity-30"
                 style={{ color: 'var(--text-secondary)' }}
-              >
-                A-
-              </button>
+              >A-</button>
               <span className="w-px h-4 self-center" style={{ backgroundColor: 'var(--border)' }} />
               <button
                 onClick={() => changeSize(1)}
                 disabled={sizeIdx === FONT_SIZES.length - 1}
                 className="px-2 py-1 text-xs disabled:opacity-30"
                 style={{ color: 'var(--text-secondary)' }}
-              >
-                A+
-              </button>
+              >A+</button>
             </div>
             {/* 亮暗切换 */}
             <button
@@ -489,7 +231,7 @@ export default function ReadingClient({
 
       {/* 正文 */}
       <main className="max-w-xl mx-auto px-5 py-10">
-        {/* 章节标题区 */}
+        {/* 章节标题 */}
         <div className="mb-10">
           <p className="text-xs mb-3 uppercase tracking-widest"
             style={{ color: 'var(--text-muted)', fontFamily: 'Georgia, serif' }}>
@@ -508,29 +250,23 @@ export default function ReadingClient({
           <div className="mt-4 w-8 h-0.5 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
         </div>
 
-        {/* 段落列表 */}
-        {chapter.blocks.length === 0 ? (
-          <div
-            className="text-center py-16 text-sm"
-            style={{ color: 'var(--text-muted)' }}
-          >
+        {/* 段落列表（中间插入一组操作栏）*/}
+        {blocks.length === 0 ? (
+          <div className="text-center py-16 text-sm" style={{ color: 'var(--text-muted)' }}>
             本章内容尚未整理完成
           </div>
         ) : (
-          <div className="flex flex-col gap-5">
-            {chapter.blocks.map((block) => (
-              <BlockItem
-                key={block.id}
-                block={block}
-                note={notes[block.id] ?? null}
-                onNoteClick={setActiveBlock}
-                onAnnotationClick={(b) =>
-                  setActiveAnnotationBlockId((prev) => (prev === b.id ? null : b.id))
-                }
-                showAnnotations={activeAnnotationBlockId === block.id}
-                bookId={book.id}
-                chapterId={chapter.id}
-              />
+          <div>
+            {blocks.map((block, idx) => (
+              <div key={block.id}>
+                <BlockItem block={block} />
+                {idx === midIdx && (
+                  <ActionBar
+                    onNoteClick={() => setShowNotes(true)}
+                    commentsRef={commentsRef}
+                  />
+                )}
+              </div>
             ))}
           </div>
         )}
@@ -540,25 +276,21 @@ export default function ReadingClient({
           {prevChapter ? (
             <Link
               href={`${basePath}/${book.id}/chapters/${prevChapter.id}`}
-              className="wc-card rounded-xl border p-4 flex flex-col gap-1 group"
+              className="wc-card rounded-xl border p-4 flex flex-col gap-1"
             >
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>← 上一章</span>
-              <span className="text-sm font-medium leading-snug line-clamp-2"
-                style={{ color: 'var(--accent)' }}>
+              <span className="text-sm font-medium leading-snug line-clamp-2" style={{ color: 'var(--accent)' }}>
                 {prevChapter.titleZh}
               </span>
             </Link>
-          ) : (
-            <div />
-          )}
+          ) : <div />}
           {nextChapter ? (
             <Link
               href={`${basePath}/${book.id}/chapters/${nextChapter.id}`}
               className="wc-card rounded-xl border p-4 flex flex-col gap-1 text-right col-start-2"
             >
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>下一章 →</span>
-              <span className="text-sm font-medium leading-snug line-clamp-2"
-                style={{ color: 'var(--accent)' }}>
+              <span className="text-sm font-medium leading-snug line-clamp-2" style={{ color: 'var(--accent)' }}>
                 {nextChapter.titleZh}
               </span>
             </Link>
@@ -569,16 +301,22 @@ export default function ReadingClient({
           )}
         </div>
 
-        {/* 评论区 */}
-        <CommentsSection bookId={book.id} chapterId={chapter.id} />
+        {/* 底部评论区（第二组） */}
+        <div ref={commentsRef} className="mt-12">
+          <ActionBar
+            onNoteClick={() => setShowNotes(true)}
+            commentsRef={commentsRef}
+          />
+          <CommentsSection bookId={book.id} chapterId={chapter.id} />
+        </div>
       </main>
 
-      {/* 笔记抽屉（云端存储） */}
-      {activeBlock && (
+      {/* 笔记抽屉 */}
+      {showNotes && (
         <NotesPanel
           bookId={book.id}
           chapterId={chapter.id}
-          onClose={() => setActiveBlock(null)}
+          onClose={() => setShowNotes(false)}
         />
       )}
     </div>
