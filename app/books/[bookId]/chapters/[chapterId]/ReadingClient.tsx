@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { Chapter, ContentBlock, Book } from '@/lib/data'
 import Annotations from '@/app/Annotations'
+import CommentsSection from '@/app/CommentsSection'
 
 // ── 笔记类型 ──────────────────────────────────────────────────────
 interface Note {
@@ -567,7 +568,8 @@ export default function ReadingClient({
           )}
         </div>
 
-        <div className="pb-20" />
+        {/* 评论区 */}
+        <CommentsSection bookId={book.id} chapterId={chapter.id} />
       </main>
 
       {/* 备注抽屉 */}
