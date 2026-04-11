@@ -32,6 +32,10 @@ export interface Book {
   category?: string
 }
 
+// ── 固定分类 ──────────────────────────────────────────────────────
+export const CATEGORIES = ['人智学', '教育学', '医学', '优律思美', '灵修'] as const
+export type Category = typeof CATEGORIES[number]
+
 // ── 书目数据 ──────────────────────────────────────────────────────
 //
 // 新增一本书：直接在 lib/books.json 数组末尾追加一个书对象即可

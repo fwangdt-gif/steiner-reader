@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { saveLocalBook } from '@/lib/local-books'
+import { CATEGORIES } from '@/lib/data'
 import type { Book, ContentBlock } from '@/lib/data'
 
 const COVER_COLORS = [
@@ -40,6 +41,7 @@ export default function UploadPage() {
     author: '',
     publishedYear: '',
     description: '',
+    category: '',
     coverColor: COVER_COLORS[0].value,
     chapterTitle: '',
     chapterContent: '',
@@ -61,6 +63,7 @@ export default function UploadPage() {
       description: form.description,
       coverColor: form.coverColor,
       publishedYear: parseInt(form.publishedYear) || new Date().getFullYear(),
+      category: form.category || undefined,
       chapters: [
         {
           id: chapterId,
@@ -167,6 +170,18 @@ export default function UploadPage() {
                   className="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none"
                   style={inputStyle}
                 />
+              </div>
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>分类</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+                  style={inputStyle}
+                >
+                  <option value="">未分类</option>
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
               <div>
                 <label className="text-xs mb-2 block" style={{ color: 'var(--text-secondary)' }}>书脊颜色</label>

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { saveLocalBook } from '@/lib/local-books'
+import { CATEGORIES } from '@/lib/data'
 import type { Book, ContentBlock } from '@/lib/data'
 
 // 解析 .md / .txt 内容为 ContentBlock 数组
@@ -46,6 +47,7 @@ export default function UploadFileModal() {
     title: '',
     author: '',
     year: String(new Date().getFullYear()),
+    category: '',
     color: COLORS[0],
   })
   const [loading, setLoading] = useState(false)
@@ -80,6 +82,7 @@ export default function UploadFileModal() {
       titleZh: form.title,
       author: form.author,
       description: '',
+      category: form.category || undefined,
       coverColor: form.color,
       publishedYear: parseInt(form.year) || new Date().getFullYear(),
       chapters: [{
@@ -97,7 +100,7 @@ export default function UploadFileModal() {
   const close = () => {
     setOpen(false)
     setContent('')
-    setForm({ title: '', author: '', year: String(new Date().getFullYear()), color: COLORS[0] })
+    setForm({ title: '', author: '', year: String(new Date().getFullYear()), category: '', color: COLORS[0] })
   }
 
   const handleSaveLocal = () => {
@@ -195,6 +198,18 @@ export default function UploadFileModal() {
                   className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
                   style={inputStyle}
                 />
+              </div>
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>分类</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+                  style={inputStyle}
+                >
+                  <option value="">未分类</option>
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
               <div>
                 <label className="text-xs mb-2 block" style={{ color: 'var(--text-secondary)' }}>书脊颜色</label>

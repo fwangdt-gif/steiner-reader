@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { CATEGORIES } from '@/lib/data'
 import type { Book } from '@/lib/data'
 
 // ── Main component ────────────────────────────────────────────────
@@ -9,11 +10,8 @@ export default function SteinerBooksSection({ books }: { books: Book[] }) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const categories = useMemo(() => {
-    const cats = new Set<string>()
-    for (const b of books) {
-      if (b.category) cats.add(b.category)
-    }
-    return Array.from(cats).sort()
+    const used = new Set(books.map((b) => b.category).filter(Boolean))
+    return CATEGORIES.filter((c) => used.has(c))
   }, [books])
 
   const filtered = useMemo(() => {

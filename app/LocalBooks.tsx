@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { getLocalBooks, saveLocalBook, deleteLocalBook } from '@/lib/local-books'
 import { createClient } from '@/lib/supabase/client'
+import { CATEGORIES } from '@/lib/data'
 import type { Book } from '@/lib/data'
 
 const COLORS = ['#4a6fa5', '#6a8f6a', '#7a6fa5', '#8a6244', '#6a7080']
@@ -45,6 +46,7 @@ function EditBookModal({ book, onSave, onClose }: {
     year: String(book.publishedYear),
     color: book.coverColor,
     description: book.description ?? '',
+    category: book.category ?? '',
   })
 
   const set = (k: keyof typeof form) =>
@@ -60,6 +62,7 @@ function EditBookModal({ book, onSave, onClose }: {
       publishedYear: parseInt(form.year) || book.publishedYear,
       coverColor: form.color,
       description: form.description,
+      category: form.category || undefined,
     })
   }
 
@@ -87,6 +90,18 @@ function EditBookModal({ book, onSave, onClose }: {
           <div>
             <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>简介</label>
             <textarea value={form.description} onChange={set('description')} rows={2} className="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none" style={inputStyle} />
+          </div>
+          <div>
+            <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>分类</label>
+            <select
+              value={form.category}
+              onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
+              className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              style={inputStyle}
+            >
+              <option value="">未分类</option>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
           <div>
             <label className="text-xs mb-2 block" style={{ color: 'var(--text-secondary)' }}>书脊颜色</label>
@@ -296,11 +311,8 @@ export default function LocalBooks() {
 
   // ── Derived: all categories from cloud books ───────────────────────
   const allCategories = useMemo(() => {
-    const cats = new Set<string>()
-    for (const { category } of [...myCloudBooks, ...othersBooks]) {
-      if (category) cats.add(category)
-    }
-    return Array.from(cats).sort()
+    const used = new Set([...myCloudBooks, ...othersBooks].map(({ category }) => category).filter(Boolean))
+    return CATEGORIES.filter((c) => used.has(c))
   }, [myCloudBooks, othersBooks])
 
   // ── Filter helpers ────────────────────────────────────────────────
@@ -359,9 +371,24 @@ export default function LocalBooks() {
     setMyCloudBooks((prev) => prev.filter(({ book }) => book.id !== bookId))
   }
 
-  const handleSaveEdit = (updated: Book) => {
+  const handleSaveEdit = async (updated: Book) => {
     saveLocalBook(updated)
     setLocalBooks(getLocalBooks())
+    // Sync to Supabase if this is a cloud book
+    const isCloud = [...myCloudBooks, ...othersBooks].some(({ book }) => book.id === updated.id)
+    if (isCloud) {
+      await supabase.from('local_books').update({
+        title: updated.titleZh,
+        author: updated.author,
+        description: updated.description,
+        category: updated.category ?? null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', updated.id)
+      // Refresh cloud list
+      setMyCloudBooks((prev) => prev.map(({ book, ...rest }) =>
+        book.id === updated.id ? { ...rest, book: updated, category: updated.category ?? null } : { ...rest, book }
+      ))
+    }
     setEditingBook(null)
   }
 
