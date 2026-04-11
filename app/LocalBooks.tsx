@@ -510,6 +510,12 @@ export default function LocalBooks() {
             {localBooks.length + myCloudBooks.length} 本
           </span>
           <div className="flex items-center gap-2 ml-auto">
+            <Link
+              href="/my-books/new"
+              className="text-xs px-3 py-1 rounded-lg border"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+              + 新建
+            </Link>
             <button onClick={() => fileInputRef.current?.click()}
               className="text-xs px-3 py-1 rounded-lg border"
               style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
