@@ -3,7 +3,7 @@
 export interface ContentBlock {
   id: string
   blockIndex: number
-  blockType: 'heading' | 'subheading' | 'paragraph' | 'quote'
+  blockType: 'heading' | 'subheading' | 'paragraph' | 'quote' | 'image'
   originalText: string
   translationText: string
   scanPageRef?: number

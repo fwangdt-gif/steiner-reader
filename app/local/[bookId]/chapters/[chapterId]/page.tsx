@@ -23,6 +23,8 @@ function textToBlocks(text: string, chapterId: string): ContentBlock[] {
     if (line.startsWith('# '))  { flush(); blocks.push({ id: `${chapterId}-b${idx}`, blockIndex: idx++, blockType: 'heading',    originalText: line.slice(2), translationText: line.slice(2) }); continue }
     if (line.startsWith('## ')) { flush(); blocks.push({ id: `${chapterId}-b${idx}`, blockIndex: idx++, blockType: 'subheading', originalText: line.slice(3), translationText: line.slice(3) }); continue }
     if (line.startsWith('> '))  { flush(); blocks.push({ id: `${chapterId}-b${idx}`, blockIndex: idx++, blockType: 'quote',      originalText: line.slice(2), translationText: line.slice(2) }); continue }
+    const imgMatch = line.match(/^!\[(.*?)\]\((https?:\/\/.+?)\)$/)
+    if (imgMatch) { flush(); blocks.push({ id: `${chapterId}-b${idx}`, blockIndex: idx++, blockType: 'image', originalText: imgMatch[2], translationText: imgMatch[1] }); continue }
     buf.push(line)
   }
   flush()

@@ -27,6 +27,7 @@ function ChapterRow({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onUploadImage,
 }: {
   chapter: EditChapter
   isFirst: boolean
@@ -36,9 +37,13 @@ function ChapterRow({
   onDelete: (id: string) => void
   onMoveUp: (id: string) => void
   onMoveDown: (id: string) => void
+  onUploadImage: (chapterId: string, file: File, cursorPos: number) => Promise<void>
 }) {
   const [open, setOpen] = useState(autoFocus)
+  const [uploading, setUploading] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const titleEmpty = chapter.title.trim() === ''
 
   // Auto-focus title when newly added
@@ -48,6 +53,16 @@ function ChapterRow({
       titleRef.current?.select()
     }
   }, [autoFocus])
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const cursorPos = textareaRef.current?.selectionStart ?? chapter.content.length
+    await onUploadImage(chapter.id, file, cursorPos)
+    setUploading(false)
+    if (imageInputRef.current) imageInputRef.current.value = ''
+  }
 
   return (
     <div
@@ -111,10 +126,29 @@ function ChapterRow({
       {/* Content */}
       {open && (
         <div className="border-t px-4 py-3" style={{ borderColor: 'var(--border)' }}>
-          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
-            # 标题　## 小标题　{'>'} 引用　普通行为段落
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              # 标题　## 小标题　{'>'} 引用　普通行为段落　![说明](图片链接)
+            </p>
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploading}
+              className="text-xs px-2.5 py-1 rounded-lg border flex-shrink-0 disabled:opacity-40"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+            >
+              {uploading ? '上传中…' : '插入图片'}
+            </button>
+          </div>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
+          />
           <textarea
+            ref={textareaRef}
             value={chapter.content}
             onChange={(e) => onChange(chapter.id, 'content', e.target.value)}
             rows={Math.max(8, chapter.content.split('\n').length + 3)}
@@ -281,6 +315,25 @@ export default function EditBookPage() {
     scheduleAutosave()
   }, [scheduleAutosave])
 
+  // ── Image upload ─────────────────────────────────────────────────
+
+  const handleUploadImage = useCallback(async (chapterId: string, file: File, cursorPos: number) => {
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const path = `chapters/${bookId}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('images').upload(path, file, { cacheControl: '3600', upsert: false })
+    if (error) { alert(`图片上传失败：${error.message}`); return }
+    const { data } = supabase.storage.from('images').getPublicUrl(path)
+    const caption = file.name.replace(/\.[^.]+$/, '')
+    const markdown = `\n![${caption}](${data.publicUrl})\n`
+    setChapters((prev) => prev.map((ch) => {
+      if (ch.id !== chapterId) return ch
+      const before = ch.content.slice(0, cursorPos)
+      const after = ch.content.slice(cursorPos)
+      return { ...ch, content: before + markdown + after, dirty: true }
+    }))
+    scheduleAutosave()
+  }, [bookId, supabase, scheduleAutosave])
+
   // ── Add ───────────────────────────────────────────────────────────
 
   const handleAdd = async () => {
@@ -418,6 +471,7 @@ export default function EditBookPage() {
               onDelete={handleDelete}
               onMoveUp={handleMoveUp}
               onMoveDown={handleMoveDown}
+              onUploadImage={handleUploadImage}
             />
           ))}
         </div>

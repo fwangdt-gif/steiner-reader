@@ -24,6 +24,24 @@ function BlockItem({ block }: { block: ContentBlock }) {
     )
   }
 
+  if (block.blockType === 'image') {
+    return (
+      <figure className="my-6">
+        <img
+          src={block.originalText}
+          alt={block.translationText}
+          className="w-full rounded-xl"
+          style={{ maxHeight: '520px', objectFit: 'contain' }}
+        />
+        {block.translationText && (
+          <figcaption className="text-xs text-center mt-2" style={{ color: 'var(--text-muted)' }}>
+            {block.translationText}
+          </figcaption>
+        )}
+      </figure>
+    )
+  }
+
   if (block.blockType === 'quote') {
     return (
       <div
