@@ -350,7 +350,7 @@ export default function EditBookPage() {
         return
       }
 
-      await loadChapters()
+      setChapters((prev) => prev.map((ch) => ({ ...ch, dirty: false })))
       setLastSaved(new Date())
       setSaveStatus('saved')
     } catch {
