@@ -8,7 +8,8 @@ import ReflectionsSection from '@/app/ReflectionsSection'
 // 将 text 中匹配 query 的部分用高亮 span 包裹
 function highlight(text: string, query: string) {
   if (!query.trim()) return text
-  const parts = text.split(new RegExp(`(${query.trim()})`, 'i'))
+  const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const parts = text.split(new RegExp(`(${escaped})`, 'i'))
   return parts.map((part, i) =>
     part.toLowerCase() === query.trim().toLowerCase()
       ? <mark key={i} style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)', borderRadius: '2px' }}>{part}</mark>

@@ -150,10 +150,16 @@ export default function ReadingClient({
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // 保存阅读进度
+  // 保存阅读进度（含 basePath 和标题，用于 ContinueReading 支持本地书籍）
   useEffect(() => {
-    localStorage.setItem('steiner_last_read', JSON.stringify({ bookId: book.id, chapterId: chapter.id }))
-  }, [book.id, chapter.id])
+    localStorage.setItem('steiner_last_read', JSON.stringify({
+      bookId: book.id,
+      chapterId: chapter.id,
+      basePath,
+      bookTitle: book.titleZh,
+      chapterTitle: chapter.titleZh,
+    }))
+  }, [book.id, chapter.id, basePath, book.titleZh, chapter.titleZh])
 
   // 键盘翻章
   useEffect(() => {

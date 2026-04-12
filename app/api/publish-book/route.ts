@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 const GITHUB_API = 'https://api.github.com'
 const OWNER = process.env.GITHUB_OWNER
@@ -7,6 +8,17 @@ const TOKEN = process.env.GITHUB_TOKEN
 const FILE_PATH = 'lib/books.json'
 
 export async function POST(req: NextRequest) {
+  // 验证管理员身份
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: '请先登录' }, { status: 401 })
+  }
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') {
+    return NextResponse.json({ error: '需要管理员权限' }, { status: 403 })
+  }
+
   // 检查环境变量
   if (!TOKEN || !OWNER || !REPO) {
     return NextResponse.json({ error: '服务器未配置 GitHub 环境变量' }, { status: 500 })
