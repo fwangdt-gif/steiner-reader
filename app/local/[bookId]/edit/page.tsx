@@ -16,6 +16,80 @@ interface EditChapter {
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
+// ── File import helpers ───────────────────────────────────────────
+
+function formatMd(raw: string): string {
+  return raw
+    .replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    .replace(/\*\*(.+?)\*\*/g, '$1')   // **bold** → plain
+    .replace(/\*(.+?)\*/g, '$1')        // *italic* → plain
+    .replace(/~~(.+?)~~/g, '$1')        // ~~strike~~ → plain
+    .replace(/`(.+?)`/g, '$1')          // `code` → plain
+    .replace(/^[-*] /gm, '')            // list bullets
+    .replace(/^\d+\. /gm, '')           // numbered lists
+    .replace(/<[^>]+>/g, '')            // HTML tags
+    .split('\n').map((l) => l.trimEnd()).join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function formatTxt(raw: string): string {
+  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
+  const out: string[] = []
+  let buf: string[] = []
+
+  const flush = () => {
+    if (!buf.length) return
+    const text = buf.join(' ').trim()
+    if (text) out.push(text)
+    out.push('')
+    buf = []
+  }
+
+  for (const line of lines) {
+    const t = line.trim()
+    if (!t) { flush(); continue }
+    // Already has our markers
+    if (t.startsWith('# ') || t.startsWith('## ') || t.startsWith('> ')) {
+      flush(); out.push(t); out.push(''); continue
+    }
+    // Short isolated line → heading candidate (decided at flush time)
+    buf.push(t)
+    // If this single line is short and next would be blank, treat as heading
+    if (buf.length === 1 && t.length < 45) {
+      // Peek: will be flushed when blank line is encountered
+    }
+  }
+  flush()
+
+  // Re-scan: single short paragraph → heading
+  const result: string[] = []
+  for (let i = 0; i < out.length; i++) {
+    const cur = out[i]
+    const next = out[i + 1]
+    if (cur && cur.length < 45 && !cur.startsWith('#') && (next === '' || next === undefined)) {
+      result.push(`# ${cur}`)
+    } else {
+      result.push(cur)
+    }
+  }
+
+  return result.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+}
+
+function parseFile(text: string, ext: string): { title: string | null; content: string } {
+  const formatted = ext === 'md' ? formatMd(text) : formatTxt(text)
+  const lines = formatted.split('\n')
+  // Extract first heading as chapter title
+  const firstHeading = lines.find((l) => l.startsWith('# '))
+  if (firstHeading) {
+    const title = firstHeading.slice(2).trim()
+    const content = lines.filter((l) => l !== firstHeading).join('\n').replace(/^\n+/, '').trim()
+    return { title, content }
+  }
+  return { title: null, content: formatted }
+}
+
 // ── Chapter row ───────────────────────────────────────────────────
 
 function ChapterRow({
@@ -41,9 +115,11 @@ function ChapterRow({
 }) {
   const [open, setOpen] = useState(autoFocus)
   const [uploading, setUploading] = useState(false)
+  const [importing, setImporting] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const titleEmpty = chapter.title.trim() === ''
 
   // Auto-focus title when newly added
@@ -62,6 +138,29 @@ function ChapterRow({
     await onUploadImage(chapter.id, file, cursorPos)
     setUploading(false)
     if (imageInputRef.current) imageInputRef.current.value = ''
+  }
+
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'txt'
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      if (!text) { setImporting(false); return }
+      const { title, content } = parseFile(text, ext)
+      // Fill title if still default
+      if (title && (chapter.title === '新章节' || chapter.title.trim() === '')) {
+        onChange(chapter.id, 'title', title)
+      }
+      onChange(chapter.id, 'content', content)
+      setOpen(true)
+      setImporting(false)
+    }
+    reader.onerror = () => { alert('文件读取失败'); setImporting(false) }
+    reader.readAsText(file, 'UTF-8')
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   return (
@@ -112,6 +211,19 @@ function ChapterRow({
           {chapter.dirty && !titleEmpty && (
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>未保存</span>
           )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".txt,.md"
+            className="hidden"
+            onChange={handleFileImport}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="text-xs disabled:opacity-40"
+            style={{ color: 'var(--text-secondary)' }}
+          >{importing ? '导入中…' : '导入'}</button>
           <button
             onClick={() => onDelete(chapter.id)}
             className="text-xs"
