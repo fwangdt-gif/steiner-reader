@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import LegalFooter from './LegalFooter'
 
 export const metadata: Metadata = {
   title: 'Steiner共读平台',
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="zh-CN" className="h-full">
       <body className="min-h-full flex flex-col">
         {children}
+        <LegalFooter />
       </body>
     </html>
   )

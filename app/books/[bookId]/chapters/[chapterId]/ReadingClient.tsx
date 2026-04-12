@@ -301,6 +301,14 @@ export default function ReadingClient({
           )}
         </div>
 
+        {/* AI 翻译免责提示 */}
+        <div className="mt-12 mb-2 px-4 py-3 rounded-xl text-xs leading-relaxed"
+          style={{ backgroundColor: 'var(--warm-100)', color: 'var(--text-muted)' }}>
+          本文译自 Rudolf Steiner 德文公版著作，由人工智能生成，未参考任何现有版权译本，仅供参考。
+          建议结合德文原文阅读。·{' '}
+          <a href="/haftung" className="underline underline-offset-2">AI翻译免责声明</a>
+        </div>
+
         {/* 底部评论区（第二组） */}
         <div ref={commentsRef} className="mt-12">
           <ActionBar
