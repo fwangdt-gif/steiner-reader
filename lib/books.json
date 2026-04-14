@@ -555,5 +555,79 @@
         "blocks": []
       }
     ]
+  },
+  {
+    "id": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+    "titleZh": "身体物质层面的健康发展，是心灵与精神自由绽放的基础",
+    "titleOriginal": "身体物质层面的健康发展，是心灵与精神自由绽放的基础",
+    "author": "Steiner",
+    "description": "圣诞节给老师们的讲座。23.12.1921 - 7.1.1922",
+    "coverColor": "#4a6fa5",
+    "publishedYear": 2026,
+    "chapters": [
+      {
+        "id": "fb9c699c-011a-4694-a5a1-c74b08df275d",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 0,
+        "status": "published",
+        "blocks": []
+      },
+      {
+        "id": "844b8112-a4a2-4f64-94cd-9f0a02fd56be",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 1,
+        "status": "published",
+        "blocks": []
+      },
+      {
+        "id": "fe9126c5-bff7-40cf-b176-e3c12c09c718",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 2,
+        "status": "published",
+        "blocks": []
+      },
+      {
+        "id": "c131fa71-cb45-4136-b372-2ffb915c5e0a",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 3,
+        "status": "published",
+        "blocks": []
+      },
+      {
+        "id": "b1898c09-4854-41a4-9ea9-1b28bd38e362",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 4,
+        "status": "published",
+        "blocks": []
+      },
+      {
+        "id": "33354e72-be2b-48a4-9fb6-6a9342c60667",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 5,
+        "status": "published",
+        "blocks": []
+      },
+      {
+        "id": "f8c13a34-d057-4b7f-8f32-f24a722dac4b",
+        "bookId": "f93741e6-fbe8-4c5a-88db-a1e2af4b905a",
+        "title": "",
+        "titleZh": "",
+        "orderIndex": 6,
+        "status": "published",
+        "blocks": []
+      }
+    ]
   }
 ]
