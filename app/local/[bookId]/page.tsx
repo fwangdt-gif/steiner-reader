@@ -32,11 +32,24 @@ export default function LocalBookPage() {
       const supabase = createClient()
 
       // 1. Try Supabase first (cloud books created via /my-books/new or published)
-      const { data: bookRow } = await supabase
+      // Try with cover_image_url; fall back if the column doesn't exist yet
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let bookRow: any = null
+      const br1 = await supabase
         .from('local_books')
         .select('id, title, author, description, cover_image_url')
         .eq('id', bookId)
         .single()
+      if (!br1.error) {
+        bookRow = br1.data
+      } else {
+        const br2 = await supabase
+          .from('local_books')
+          .select('id, title, author, description')
+          .eq('id', bookId)
+          .single()
+        bookRow = br2.data
+      }
 
       if (bookRow) {
         setBook({
@@ -45,7 +58,7 @@ export default function LocalBookPage() {
           author: bookRow.author ?? '',
           description: bookRow.description ?? '',
           coverColor: '#4a6fa5',
-          coverImageUrl: bookRow.cover_image_url ?? undefined,
+          coverImageUrl: (bookRow as Record<string, unknown>).cover_image_url as string | undefined ?? undefined,
         })
       } else {
         // 2. Fallback: try localStorage for legacy local-only books

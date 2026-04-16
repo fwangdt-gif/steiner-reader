@@ -33,13 +33,26 @@ export default function EditBookInfoPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data, error } = await supabase
+      // Try with cover_image_url; fall back if the column doesn't exist yet
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let data: any = null
+      const ir1 = await supabase
         .from('local_books')
         .select('title, author, description, category, cover_image_url')
         .eq('id', bookId)
         .single()
+      if (!ir1.error) {
+        data = ir1.data
+      } else {
+        const ir2 = await supabase
+          .from('local_books')
+          .select('title, author, description, category')
+          .eq('id', bookId)
+          .single()
+        data = ir2.data
+      }
 
-      if (error || !data) {
+      if (!data) {
         alert('书籍不存在或无权访问')
         router.push('/my-books')
         return
@@ -51,7 +64,7 @@ export default function EditBookInfoPage() {
         description: data.description ?? '',
         category: data.category ?? '',
       })
-      setCoverImageUrl(data.cover_image_url ?? null)
+      setCoverImageUrl((data as Record<string, unknown>).cover_image_url as string | null ?? null)
       setLoading(false)
     }
     load()

@@ -477,10 +477,22 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
         .from('profiles').select('role').eq('id', user.id).single()
       if (profile?.role === 'admin') setIsAdmin(true)
 
-      const { data: booksData } = await supabase
+      // Try with cover_image_url; fall back if the column doesn't exist yet
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let booksData: any[] | null = null
+      const r1 = await supabase
         .from('local_books')
         .select('id, title, author, description, category, user_id, updated_at, cover_image_url')
         .order('updated_at', { ascending: false })
+      if (!r1.error) {
+        booksData = r1.data
+      } else {
+        const r2 = await supabase
+          .from('local_books')
+          .select('id, title, author, description, category, user_id, updated_at')
+          .order('updated_at', { ascending: false })
+        booksData = r2.data
+      }
 
       if (!booksData) { setCloudLoaded(true); return }
 
@@ -537,7 +549,7 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
           isOwn: row.user_id === user.id,
           category: row.category ?? null,
           updated_at: row.updated_at ?? '',
-          coverImageUrl: row.cover_image_url ?? undefined,
+          coverImageUrl: (row as Record<string, unknown>).cover_image_url as string | undefined ?? undefined,
         }
         if (entry.isOwn) mine.push(entry)
         else others.push(entry)
