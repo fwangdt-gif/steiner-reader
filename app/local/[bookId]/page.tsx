@@ -19,6 +19,7 @@ interface BookMeta {
   author: string
   description: string
   coverColor: string
+  coverImageUrl?: string
 }
 
 export default function LocalBookPage() {
@@ -33,7 +34,7 @@ export default function LocalBookPage() {
       // 1. Try Supabase first (cloud books created via /my-books/new or published)
       const { data: bookRow } = await supabase
         .from('local_books')
-        .select('id, title, author, description')
+        .select('id, title, author, description, cover_image_url')
         .eq('id', bookId)
         .single()
 
@@ -44,6 +45,7 @@ export default function LocalBookPage() {
           author: bookRow.author ?? '',
           description: bookRow.description ?? '',
           coverColor: '#4a6fa5',
+          coverImageUrl: bookRow.cover_image_url ?? undefined,
         })
       } else {
         // 2. Fallback: try localStorage for legacy local-only books
@@ -65,7 +67,7 @@ export default function LocalBookPage() {
         .eq('book_id', bookId)
         .order('order_index', { ascending: true })
 
-      setChapters(chapterRows ?? [])
+      setChapters((chapterRows ?? []).sort((a, b) => a.order_index - b.order_index))
     }
     load()
   }, [bookId])
@@ -97,7 +99,16 @@ export default function LocalBookPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="w-10 h-1 rounded-full mb-4" style={{ backgroundColor: book.coverColor }} />
+          {book.coverImageUrl ? (
+            <img
+              src={book.coverImageUrl}
+              alt={book.title}
+              className="w-full rounded-xl mb-6 object-cover"
+              style={{ maxHeight: '280px' }}
+            />
+          ) : (
+            <div className="w-10 h-1 rounded-full mb-4" style={{ backgroundColor: book.coverColor }} />
+          )}
           <h1 className="text-2xl font-semibold mb-1">{book.title}</h1>
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>{book.author}</p>
           {book.description && (

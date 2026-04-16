@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -18,22 +18,24 @@ export default function EditBookInfoPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
   const [form, setForm] = useState({
     title: '',
     author: '',
     description: '',
     category: '',
   })
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     async function load() {
-      // Auth guard
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
       const { data, error } = await supabase
         .from('local_books')
-        .select('title, author, description, category')
+        .select('title, author, description, category, cover_image_url')
         .eq('id', bookId)
         .single()
 
@@ -49,6 +51,7 @@ export default function EditBookInfoPage() {
         description: data.description ?? '',
         category: data.category ?? '',
       })
+      setCoverImageUrl(data.cover_image_url ?? null)
       setLoading(false)
     }
     load()
@@ -58,6 +61,37 @@ export default function EditBookInfoPage() {
     (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((p) => ({ ...p, [k]: e.target.value }))
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    try {
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `covers/${bookId}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(path, file, { cacheControl: '3600', upsert: true })
+      if (uploadError) { alert(`封面上传失败：${uploadError.message}`); return }
+      const { data } = supabase.storage.from('images').getPublicUrl(path)
+      const url = data.publicUrl
+      const { error: updateError } = await supabase
+        .from('local_books')
+        .update({ cover_image_url: url })
+        .eq('id', bookId)
+      if (updateError) { alert(`保存封面链接失败：${updateError.message}`); return }
+      setCoverImageUrl(url)
+    } finally {
+      setUploadingCover(false)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveCover = async () => {
+    if (!confirm('确认移除封面图片？')) return
+    await supabase.from('local_books').update({ cover_image_url: null }).eq('id', bookId)
+    setCoverImageUrl(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,6 +140,68 @@ export default function EditBookInfoPage() {
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             修改将直接同步到云端
           </p>
+        </div>
+
+        {/* ── 封面图片 ── */}
+        <div className="wc-card p-6 rounded-xl border mb-4">
+          <label className="text-xs mb-3 block font-medium" style={{ color: 'var(--text-secondary)' }}>
+            封面图片
+          </label>
+          {coverImageUrl ? (
+            <div className="flex items-start gap-4">
+              <img
+                src={coverImageUrl}
+                alt="封面"
+                className="rounded-lg object-cover flex-shrink-0"
+                style={{ width: 100, height: 140 }}
+              />
+              <div className="flex flex-col gap-2 pt-1">
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleCoverUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => coverInputRef.current?.click()}
+                  disabled={uploadingCover}
+                  className="text-xs px-3 py-1.5 rounded-lg border disabled:opacity-40"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+                >
+                  {uploadingCover ? '上传中…' : '更换图片'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRemoveCover}
+                  className="text-xs px-3 py-1.5 rounded-lg border"
+                  style={{ borderColor: '#dc2626', color: '#dc2626' }}
+                >
+                  移除封面
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverUpload}
+              />
+              <button
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={uploadingCover}
+                className="w-full py-8 rounded-xl border-2 border-dashed text-sm disabled:opacity-40"
+                style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+              >
+                {uploadingCover ? '上传中…' : '点击上传封面图片'}
+              </button>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="wc-card p-6 rounded-xl border flex flex-col gap-4">
@@ -184,7 +280,6 @@ export default function EditBookInfoPage() {
           </div>
         </form>
 
-        {/* Quick link to chapter editor */}
         <div className="mt-4 text-center">
           <Link
             href={`/local/${bookId}/edit`}

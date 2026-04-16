@@ -26,6 +26,7 @@ interface CloudBook {
   isOwn: boolean
   category: string | null
   updated_at: string
+  coverImageUrl?: string
 }
 
 function exportBook(book: Book) {
@@ -132,12 +133,13 @@ function EditBookModal({ book, onSave, onClose }: {
 }
 
 // ── 书籍卡片 ──────────────────────────────────────────────────────
-function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, onPublish, publishing, onMigrate, migrating }: {
+function BookCard({ book, isOwn, isAdmin, uploader, category, coverImageUrl, onEdit, onDelete, onPublish, publishing, onMigrate, migrating }: {
   book: Book
   isOwn: boolean
   isAdmin?: boolean
   uploader?: string
   category?: string | null
+  coverImageUrl?: string
   onEdit?: () => void
   onDelete?: () => void
   onPublish?: () => void
@@ -147,7 +149,11 @@ function BookCard({ book, isOwn, isAdmin, uploader, category, onEdit, onDelete, 
 }) {
   return (
     <div className="wc-card rounded-2xl border overflow-hidden">
-      <div className="h-1" style={{ backgroundColor: book.coverColor }} />
+      {coverImageUrl ? (
+        <img src={coverImageUrl} alt={book.titleZh} className="w-full object-cover" style={{ maxHeight: 160 }} />
+      ) : (
+        <div className="h-1" style={{ backgroundColor: book.coverColor }} />
+      )}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-1">
           <h3 className="text-[15px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
@@ -480,7 +486,7 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
 
       const { data: booksData } = await supabase
         .from('local_books')
-        .select('id, title, author, description, category, user_id, updated_at')
+        .select('id, title, author, description, category, user_id, updated_at, cover_image_url')
         .order('updated_at', { ascending: false })
 
       if (!booksData) { setCloudLoaded(true); return }
@@ -538,6 +544,7 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
           isOwn: row.user_id === user.id,
           category: row.category ?? null,
           updated_at: row.updated_at ?? '',
+          coverImageUrl: row.cover_image_url ?? undefined,
         }
         if (entry.isOwn) mine.push(entry)
         else others.push(entry)
@@ -597,13 +604,14 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
           ))}
 
           {/* 我的云端书籍 */}
-          {filteredMine.map(({ book, category }) => (
+          {filteredMine.map(({ book, category, coverImageUrl }) => (
             <BookCard
               key={book.id}
               book={book}
               isOwn={true}
               isAdmin={isAdmin}
               category={category}
+              coverImageUrl={coverImageUrl}
               onEdit={() => setEditingBook(book)}
               onDelete={() => handleDeleteCloud(book.id)}
               onPublish={() => handlePublish(book)}
@@ -667,7 +675,7 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
         ) : (
           <>
             <div className="flex flex-col gap-4">
-              {sharedVisible.map(({ book, uploader, category }) => (
+              {sharedVisible.map(({ book, uploader, category, coverImageUrl }) => (
                 <BookCard
                   key={book.id}
                   book={book}
@@ -675,6 +683,7 @@ export default function LocalBooks({ query = '', steinerBooks }: { query?: strin
                   isAdmin={isAdmin}
                   uploader={uploader}
                   category={category}
+                  coverImageUrl={coverImageUrl}
                   onEdit={isAdmin ? () => setEditingBook(book) : undefined}
                   onDelete={isAdmin ? () => handleDeleteCloud(book.id) : undefined}
                 />

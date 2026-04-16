@@ -39,16 +39,7 @@ export default function LocalChapterPage() {
 
   useEffect(() => {
     async function load() {
-      // Fast path: localStorage
-      const localBook = getLocalBook(bookId)
-      const localChapter = localBook?.chapters.find((c) => c.id === chapterId)
-      if (localBook && localChapter) {
-        const { prev, next } = getLocalAdjacentChapters(bookId, chapterId)
-        setData({ book: localBook, chapter: localChapter, prev, next })
-        return
-      }
-
-      // Fallback: Supabase chapters table
+      // Primary path: Supabase (always fresh)
       const supabase = createClient()
 
       const { data: bookRow } = await supabase
@@ -57,46 +48,58 @@ export default function LocalChapterPage() {
         .eq('id', bookId)
         .single()
 
-      if (!bookRow) { setData(null); return }
+      if (bookRow) {
+        const { data: allRows } = await supabase
+          .from('chapters')
+          .select('id, title, content, order_index')
+          .eq('book_id', bookId)
+          .order('order_index')
 
-      const { data: allRows } = await supabase
-        .from('chapters')
-        .select('id, title, content, order_index')
-        .eq('book_id', bookId)
-        .order('order_index')
+        if (!allRows?.length) { setData(null); return }
 
-      if (!allRows?.length) { setData(null); return }
+        const currentIdx = allRows.findIndex((r) => r.id === chapterId)
+        if (currentIdx === -1) { setData(null); return }
 
-      const currentIdx = allRows.findIndex((r) => r.id === chapterId)
-      if (currentIdx === -1) { setData(null); return }
+        const toChapter = (r: typeof allRows[0]): Chapter => ({
+          id: r.id,
+          bookId,
+          title: r.title,
+          titleZh: r.title,
+          orderIndex: r.order_index + 1,  // DB is 0-based; display as 1-based
+          status: 'published' as const,
+          blocks: textToBlocks(r.content ?? '', r.id),
+        })
 
-      const toChapter = (r: typeof allRows[0]): Chapter => ({
-        id: r.id,
-        bookId,
-        title: r.title,
-        titleZh: r.title,
-        orderIndex: r.order_index,
-        status: 'published' as const,
-        blocks: textToBlocks(r.content ?? '', r.id),
-      })
+        const book: Book = {
+          id: bookRow.id,
+          titleZh: bookRow.title,
+          titleOriginal: bookRow.title,
+          author: bookRow.author ?? '',
+          description: bookRow.description ?? '',
+          coverColor: '#4a6fa5',
+          publishedYear: new Date().getFullYear(),
+          chapters: allRows.map(toChapter),
+        }
 
-      const book: Book = {
-        id: bookRow.id,
-        titleZh: bookRow.title,
-        titleOriginal: bookRow.title,
-        author: bookRow.author ?? '',
-        description: bookRow.description ?? '',
-        coverColor: '#4a6fa5',
-        publishedYear: new Date().getFullYear(),
-        chapters: allRows.map(toChapter),
+        setData({
+          book,
+          chapter: toChapter(allRows[currentIdx]),
+          prev: currentIdx > 0 ? toChapter(allRows[currentIdx - 1]) : null,
+          next: currentIdx < allRows.length - 1 ? toChapter(allRows[currentIdx + 1]) : null,
+        })
+        return
       }
 
-      setData({
-        book,
-        chapter: toChapter(allRows[currentIdx]),
-        prev: currentIdx > 0 ? toChapter(allRows[currentIdx - 1]) : null,
-        next: currentIdx < allRows.length - 1 ? toChapter(allRows[currentIdx + 1]) : null,
-      })
+      // Fallback: localStorage (for books never synced to Supabase)
+      const localBook = getLocalBook(bookId)
+      const localChapter = localBook?.chapters.find((c) => c.id === chapterId)
+      if (localBook && localChapter) {
+        const { prev, next } = getLocalAdjacentChapters(bookId, chapterId)
+        setData({ book: localBook, chapter: localChapter, prev, next })
+        return
+      }
+
+      setData(null)
     }
     load()
   }, [bookId, chapterId]) // eslint-disable-line react-hooks/exhaustive-deps
