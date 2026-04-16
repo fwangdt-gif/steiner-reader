@@ -142,7 +142,7 @@ export default function SteinerBooksSection({ books, query = '' }: { books: Book
                     )}
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold mb-1 leading-snug">{book.titleZh}</h2>
+                <Link href={`/books/${book.id}`} className="text-lg font-semibold mb-1 leading-snug hover:underline underline-offset-2 block" style={{ color: 'var(--text-primary)' }}>{book.titleZh}</Link>
                 <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
                   {book.author} · {book.publishedYear}
                 </p>
@@ -185,17 +185,10 @@ export default function SteinerBooksSection({ books, query = '' }: { books: Book
                       </button>
                     )}
                     <Link href={`/books/${book.id}`}
-                      className="text-sm px-3 py-1.5 rounded-lg border"
-                      style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-                      目录
+                      className="text-sm px-3 py-1.5 rounded-lg text-white"
+                      style={{ backgroundColor: 'var(--accent)' }}>
+                      查看目录
                     </Link>
-                    {firstChapter && (
-                      <Link href={`/books/${book.id}/chapters/${firstChapter.id}`}
-                        className="text-sm px-3 py-1.5 rounded-lg text-white"
-                        style={{ backgroundColor: 'var(--accent)' }}>
-                        开始阅读
-                      </Link>
-                    )}
                   </div>
                 </div>
               </div>

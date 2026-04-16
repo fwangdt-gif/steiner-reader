@@ -156,9 +156,9 @@ function BookCard({ book, isOwn, isAdmin, uploader, category, coverImageUrl, onE
       )}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-1">
-          <h3 className="text-[15px] font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>
+          <Link href={`/local/${book.id}`} className="text-[15px] font-semibold leading-snug hover:underline underline-offset-2" style={{ color: 'var(--text-primary)' }}>
             {book.titleZh}
-          </h3>
+          </Link>
           <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5 flex-wrap justify-end">
             {category && (
               <span className="text-xs px-2 py-0.5 rounded-full"
@@ -224,17 +224,10 @@ function BookCard({ book, isOwn, isAdmin, uploader, category, coverImageUrl, onE
               </>
             )}
             <Link href={`/local/${book.id}`}
-              className="text-xs px-2.5 py-1.5 rounded-lg border"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-              目录
+              className="text-xs px-2.5 py-1.5 rounded-lg text-white"
+              style={{ backgroundColor: 'var(--accent)' }}>
+              查看目录
             </Link>
-            {book.chapters[0] && (
-              <Link href={`/local/${book.id}/chapters/${book.chapters[0].id}`}
-                className="text-xs px-2.5 py-1.5 rounded-lg text-white"
-                style={{ backgroundColor: 'var(--accent)' }}>
-                开始阅读
-              </Link>
-            )}
           </div>
         </div>
       </div>
